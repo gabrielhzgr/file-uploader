@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head') %>
+<body>
+    <% if(locals.flashSuccess){ %>
+        <%- include('partials/flash', {flash: flashSuccess}) %>
+    <% } %>
+    <% if(locals.flashError){ %>
+        <%- include('partials/flash', {flash: flashError}) %>
+    <% } %>
+    <form action="login" method="POST">
+        <label for="username">
+            Username
+            <input type="email" name="username" id="username" placeholder="user@domain.com" required>
+        </label>
+        <label for="password">
+            Password
+            <input type="text" name="password" id="password" required>
+        </label>
+        <button>Submit</button>
+    </form>
+</body>
+</html>

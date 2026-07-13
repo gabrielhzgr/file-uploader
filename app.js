@@ -13,7 +13,7 @@ const bcrypt = require('bcrypt')
 const indexRouter = require('./routes/indexRouter')
 
 const flash = require('connect-flash')
-const { error } = require('node:console')
+const { error, log } = require('node:console')
 
 //CREATE EXPRESS APP
 const app = express()
@@ -31,14 +31,14 @@ app.use(express.static(assetPath))
 app.use(express.urlencoded({extended: true}))
 app.use(express.json())
 
-app.set('views', path.join(__dirname),'views')
+app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 
 // SET SESSION STORAGE
 app.use(
     session({
         cookie: {
-            maxAge: 2000 * 60 * 60 * 24 * 2 // 2days
+            maxAge: 1000 * 60 * 60 * 24 * 2 // 2days
         },
         secret: process.env.SECRET,
         resave: true,
@@ -57,9 +57,9 @@ app.use(
 
 //PASSPORT AUTHENTICATION
 passport.use(
-    new LocalStrategy({passReqToCallback: true}, async(req, username, password, done)=>{
+    new LocalStrategy({passReqToCallback: true}, async (req, username, password, done)=>{
         try {
-            const user = await prisma.user.findFirst({where: {username: req.body.user}})
+            const user = await prisma.user.findFirst({where: {username}})
 
             if(!user){
                 return done(null, false, req.flash('error', 'Incorrect username'))
@@ -76,14 +76,14 @@ passport.use(
     })
 )
 
-passport.deserializeUser((user,done)=>{
-    done(null,user.id)
+passport.serializeUser((user,done)=>{
+    done(null, user.id)
 })
 
 passport.deserializeUser(async (id, done)=>{
     try{
         const user = await prisma.user.findFirst({where: {id}})
-        done(null,user)
+        done(null, user)
     }catch (err){
         done(err)
     }
@@ -92,18 +92,23 @@ passport.deserializeUser(async (id, done)=>{
 app.use(passport.session())
 app.use(flash())
 
+console.log(process.env.NODE_ENV);
+
+// USER MIDDLEWARE
+app.use((req,res,next)=>{ 
+    res.locals.currentUser = req.user //Avoid manually passing user to all views
+    next()
+})
+
 // ROUTES
 
-app.get('/', (req,res,next)=>{
-    res.send('hola')
-})
+app.use('/', indexRouter)
 
 app.use((req,res,next)=>{
     res.status(404).render('404',{title: 'Not found'})
 })
 
 app.use((err, req, res, next)=>{
-    console.log(err.message);
     res.status(err.statusCode || 500).render('errorPage', {title: 'Error', errorMessage: err.message})
 })
 

@@ -1,15 +1,25 @@
-require('dotenv').config()
-const { PrismaClient } = require("./generated/prisma/client");
-const { PrismaPg } = require("@prisma/adapter-pg");
-
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+/**
+ * TESTING PRISMA CLIENT
+ */
+const  prisma = require("./lib/prisma");
 
 async function main() {
-  const val = await prisma.user.findMany({
-    take: 10,
+  // Create a new user with a post
+  /*
+  const user = await prisma.user.create({
+    data: {
+      username: "alice@prisma.io",
+      password: 'asfasf' 
+    }
   });
-  console.log(val);
+  console.log("Created user:", user);
+  */
+  // Fetch all users with their posts
+  //const allUsers = await prisma.user.findMany({});
+
+  const allUsers = await prisma.user.findFirst({where: {username: 'alice@prisma.io'}})
+
+  console.log("All users:", JSON.stringify(allUsers, null, 2));
 }
 
 main()
@@ -20,4 +30,4 @@ main()
     console.error(e);
     await prisma.$disconnect();
     process.exit(1);
-});
+  });

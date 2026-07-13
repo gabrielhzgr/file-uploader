@@ -19,8 +19,35 @@ model Session {
   expiresAt DateTime
 }
 
-model User{
-  id Int @id @default(autoincrement())
-  username String  @unique
-  password String
+model User {
+  id       Int      @id @default(autoincrement())
+  username String   @unique @db.VarChar(255)
+  password String   @db.VarChar(255)
+  folders  Folder[]
+}
+
+model Folder {
+  id        String   @id @default(uuid())
+  name      String
+  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   Int      @map("owner_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  files     File[]
+}
+
+model File {
+  id        String   @id @default(uuid())
+  name      String
+  folder    Folder   @relation(fields: [folderId], references: [id])
+  folderId  String   @map("folder_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model SharedFolder {
+  id        String   @id @default(uuid())
+  expiresAt DateTime @map("expires_at")
+
+  @@map("shared_folder")
 }

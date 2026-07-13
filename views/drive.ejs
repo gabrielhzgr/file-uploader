@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head') %>
+<body>
+    <% if(locals.currentUser) { %>
+        <%= currentUser.username %>
+    <% } else { %>
+        <h1>Not logged in</h1>
+    <% } %>
+</body>
+</html>

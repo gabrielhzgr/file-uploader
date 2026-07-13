@@ -1,0 +1,5 @@
+<ul class="<%= flash.type %>">
+    <% flash.messages.forEach(message => {%>
+        <li><%= message %></li>
+    <% }); %>
+</ul>
