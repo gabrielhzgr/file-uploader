@@ -1,28 +1,32 @@
 const {body, validationResult, matchedData} = require('express-validator')
 const prisma = require('../lib/prisma')
 const bcrypt = require('bcrypt')
+
+
+function getSignUp(req, res, next) {
+  res.render("signUp", {title:'Sign Up'});
+}
+
 const validateUser = [
   body('username').trim()
     .isLength({min: 1, max: 255}).withMessage('Username must be 1 to 255 characters long')
     .custom(async (value, {req})=>{
         try {
             const user = await prisma.user.findFirst({where: {username: value}})
-            return !user
+            if(user !== null){
+              throw new Error('username already exists')
+            }
         } catch (err) {
             throw err
         }
-    }).withMessage('username already exists'),
-  body('password').trim()
+    }),
+  body('password')
     .isLength({min: 1, max: 255}).withMessage('Username must be 1 to 255 characters long'),
-  body('confirm-password').trim()
+  body('confirm-password')
     .custom((value, {req})=>{
       return value == req.body.password
     }).withMessage('Password and confirm password must match')
 ]
-
-function getSignUp(req, res, next) {
-  res.render("signUp", {title:'Sign Up'});
-}
 
 const createUser = [
   validateUser,
