@@ -2,10 +2,32 @@
 <html lang="en">
 <%- include('partials/head') %>
 <body>
-    <% if(locals.currentUser) { %>
-        <%= currentUser.username %>
-    <% } else { %>
-        <h1>Not logged in</h1>
-    <% } %>
+    <%- include('partials/header') %>
+    <main>
+        <aside>
+            <form action="/drive/upload/folder/" method="POST" style="display: none;"></form>
+            <input type="file" name="folder" id="folder" webkitdirectory style="display: none;">
+            <button id="upload-folder-btn" onclick="document.querySelector('#folder').click()">Upload folder</button>
+
+            <form action="/drive/upload/file" method="POST" style="display: none;"></form>
+            <input type="file" name="folder" id="file" webkitdirectory style="display: none;">
+            <button id="upload-file-btn" onclick="document.querySelector('#file').click()">Upload file</button>
+            <% if(!locals.currentUser){ %>
+                <script>
+                    const folderBtn = document.querySelector('#upload-folder-btn')
+                    folderBtn.setAttribute('disabled', 'disabled')
+                    folderBtn.setAttribute('title', 'You must first login')
+
+                    const fileBtn = document.querySelector('#upload-file-btn')
+                    fileBtn.setAttribute("disabled", "disabled")
+                    fileBtn.setAttribute('title', 'You must first login')
+                </script>
+            <% } %>
+        </aside>
+        <label id="drop-zone" for="selector">
+            <input type="file" name="selector" id="selector">
+        </label>
+    </main>
+    
 </body>
 </html>

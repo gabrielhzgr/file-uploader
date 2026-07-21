@@ -1,0 +1,26 @@
+<header>
+    <h1 class="logo">
+        <span class="material-symbols-outlined">
+            upload
+        </span>
+        <a href="/drive">file-uploader</a>
+    </h1>
+    <% if(locals.currentUser){ %>
+        <div class="profile-overview">
+            <p>Welcome <%= currentUser.username %></p>
+            <a href="/users/logout">Logout</a>
+        </div>
+    <% }else{ %>
+        <div class="links">
+            <span class="material-symbols-outlined">
+                app_registration
+            </span>
+            <a href="/users/signup">Sign Up</a>
+            <span class="material-symbols-outlined">
+                login
+            </span>
+            <a href="/users/login">Login</a>
+        </div>
+
+    <% } %>
+</header>

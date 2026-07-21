@@ -5,20 +5,26 @@
     <% if(locals.flash){ %>
         <%- include('partials/flash') %>
     <% } %>
-    <form action="signup" method="POST">
-        <label for="username">
-            Username
-            <input type="email" name="username" id="username" placeholder="user@domain.com" required>
-        </label>
-        <label for="password">
-            Password
-            <input type="text" name="password" id="password" required>
-        </label>
-        <label for="confirm-password">
-            Confirm Password
-            <input type="password" name="confirm-password" id="confirm-password">
-        </label>
-        <button>Submit</button>
-    </form>
+    <%- include('partials/header') %>
+    <main>
+        <form action="signup" method="POST">
+            <div class="fields">
+                <label for="username">
+                    
+                    <h2>Username</h2>
+                    <input type="email" name="username" id="username" placeholder="user@domain.com" required>
+                </label>
+                <label for="password">
+                    <h2>Password</h2>
+                    <input type="text" name="password" id="password" required>
+                </label>
+                <label for="confirm-password">
+                    <h2>Confirm Password</h2>
+                    <input type="password" name="confirm-password" id="confirm-password" required>
+                </label>
+            </div>
+            <button>Submit</button>
+        </form>
+    </main>
 </body>
 </html>

@@ -22,7 +22,7 @@ app.listen(PORT, error=>{
     if(error){
         throw error
     }
-    console.log(`EXPRESS APP. LISTENING ON PORT: ${3000}`);
+    console.log(`EXPRESS APP. LISTENING ON PORT: ${3000}, environment: ${process.env.NODE_ENV}`);
 })
 
 //SET NECESSARY MIDDLEWARE

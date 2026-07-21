@@ -1,5 +1,11 @@
-<ul class="<%= flash.type %>">
-    <% flash.messages.forEach(message => {%>
-        <li><%= message %></li>
-    <% }); %>
-</ul>
+<div class="flash <%= flash.type %>">
+    <ul>
+        <% flash.messages.forEach(message => {%>
+            <li><%= message %></li>
+        <% }); %>
+    </ul>
+    
+    <span aria-label="close" class="close" onclick="this.parentElement.remove()">
+        X
+    </span>
+</div>
