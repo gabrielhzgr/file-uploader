@@ -23,6 +23,8 @@ async function getFolder(req, res, next){
   } 
 }
 
+
+
 async function uploadFileToFolder(req,res,next){
   try {
     const {id: folderId} = req.folder
@@ -38,12 +40,8 @@ async function uploadFileToFolder(req,res,next){
 }
 
 
-
-//TODO Implementar multer
-
 //TODO Middleware para subir folder
 
-//TODO Middleware para subir file
 
 
 

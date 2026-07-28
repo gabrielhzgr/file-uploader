@@ -204,3 +204,9 @@ aside{
     background-color: whitesmoke;
     border-radius: 10px;
 }
+
+.content{
+    display: flex;
+    align-items: center;
+    background-color: whitesmoke;
+}
