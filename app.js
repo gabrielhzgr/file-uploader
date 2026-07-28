@@ -12,7 +12,7 @@ const bcrypt = require('bcrypt')
 
 const indexRouter = require('./routes/indexRouter')
 const usersRouter = require('./routes/usersRouter.js')
-const driveRouter = require('./routes/driveRouter.js')
+const storageRouter = require('./routes/storageRouter.js')
 
 const flash = require('connect-flash')
 const { error, log } = require('node:console')
@@ -106,7 +106,7 @@ app.use((req,res,next)=>{
 
 app.use('/', indexRouter)
 app.use('/users', usersRouter)
-app.use('/drive', driveRouter)
+app.use('/storage', storageRouter)
 
 app.use((req,res,next)=>{
     res.status(404).render('404',{title: 'Not found'})

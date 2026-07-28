@@ -5,6 +5,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["typedSql"]
   output   = "../generated/prisma"
 }
 
@@ -20,25 +21,29 @@ model Session {
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
+  id       String      @id @default(uuid())
   username String   @unique @db.VarChar(255)
   password String   @db.VarChar(255)
   folders  Folder[]
 }
 
 model Folder {
-  id        String   @id @default(uuid())
-  name      String
-  owner     User     @relation(fields: [ownerId], references: [id])
-  ownerId   Int      @map("owner_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  files     File[]
+  id             String   @id @default(uuid())
+  name           String
+  parentFolderId String?  @map("parent_folder_id")
+  parentFolder   Folder?  @relation("Hierarchy", fields: [parentFolderId], references: [id])
+  subFolders     Folder[] @relation("Hierarchy")
+  owner          User     @relation(fields: [ownerId], references: [id])
+  ownerId        String      @map("owner_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  files          File[]
 }
 
 model File {
   id        String   @id @default(uuid())
   name      String
+  mimetype  String
   folder    Folder   @relation(fields: [folderId], references: [id])
   folderId  String   @map("folder_id")
   createdAt DateTime @default(now()) @map("created_at")

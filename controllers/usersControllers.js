@@ -1,7 +1,7 @@
 const {body, validationResult, matchedData} = require('express-validator')
 const prisma = require('../lib/prisma')
-const bcrypt = require('bcrypt')
-
+const supabase = require('../lib/supabase')
+const bcrypt = require('bcrypt');
 
 function getSignUp(req, res, next) {
   res.render("signUp", {title:'Sign Up'});
@@ -41,6 +41,8 @@ const createUser = [
       const {username, password} = matchedData(req)
       const hashedPassword = await bcrypt.hash(password, 10)
       const newUser = await prisma.user.create({data: {username, password: hashedPassword}})
+      await prisma.folder.create({data: {name: 'My Storage', ownerId: newUser.id}}) //New root folder
+      await supabase.storage.createBucket(newUser.id)
       req.flash('success', `Signed Up for user:  ${newUser.username} was succesful`)
       res.redirect('/users/login')
     } catch (err) {
@@ -70,7 +72,7 @@ function logout(req, res, next){
         if(err){
             return next(err)
         }
-        res.redirect('/drive')
+        res.redirect('/storage')
     })
 }
 

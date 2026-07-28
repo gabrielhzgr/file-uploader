@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head') %>
+<body>
+    <%- include('partials/header') %>
+    <main>
+        <aside>
+            <% if(locals.currentUser && locals.folder) {%>
+                <form id="form-folder" action="/storage/<%= folder.id %>/upload/folder" method="POST" style="display: none;"></form>
+                <input type="file" name="folder" id="folder" webkitdirectory style="display: none;">
+                <button id="upload-folder-btn">Upload folder</button>
+                <form id="form-file" action="/storage/<%= folder.id %>/upload/file" enctype="multipart/form-data" method="POST" style="display: none;">
+                    <input type="file" name="file" id="file">
+                </form>
+                <button id="upload-file-btn">Upload file</button>
+                 <script>
+                    var folderBtn = document.querySelector('#upload-folder-btn')
+                    var fileBtn = document.querySelector('#upload-file-btn')
+                    var inputFolder = document.querySelector('#folder')
+                    var inputFile = document.querySelector('#file')
+                    var formFolder = document.querySelector('#form-folder')
+                    var formFile = document.querySelector('#form-file')
+
+                    folderBtn.onclick = e=>inputFolder.click()
+                    fileBtn.onclick = e=>inputFile.click()
+                    
+                    inputFile.onchange = (e)=>{
+                        formFile.submit()
+                    }
+                </script>
+            <% } else{ %>
+                <button id="upload-folder-btn" disabled>Upload folder</button>
+                <button id="upload-file-btn" disabled>Upload file</button>
+            <% } %>               
+        </aside>
+        <label id="drop-zone" for="selector">
+            <input type="file" name="selector" id="selector">
+            <section class="contents">
+                <% if(locals.currentUser && locals.contents){ %>
+                        <% contents.forEach(content=>{ %>
+                            <%- include('partials/content', {content}) %>
+                        <% }) %>
+                    
+                <% } %>
+            </section>
+        </label>
+    </main>
+</body>
+</html>

@@ -1,5 +1,5 @@
 function getIndex(req, res, next) {
-  res.redirect('/drive')
+  res.redirect('/storage')
 }
 
 module.exports = { getIndex};
