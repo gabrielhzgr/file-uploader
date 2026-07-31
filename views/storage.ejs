@@ -1,49 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
 <%- include('partials/head') %>
-<body>
-    <%- include('partials/header') %>
-    <main>
-        <aside>
-            <% if(locals.currentUser && locals.folder) {%>
-                <form id="form-folder" action="/storage/<%= folder.id %>/upload/folder" method="POST" style="display: none;"></form>
-                <input type="file" name="folder" id="folder" webkitdirectory style="display: none;">
-                <button id="upload-folder-btn">Upload folder</button>
-                <form id="form-file" action="/storage/<%= folder.id %>/upload/file" enctype="multipart/form-data" method="POST" style="display: none;">
-                    <input type="file" name="file" id="file">
-                </form>
-                <button id="upload-file-btn">Upload file</button>
-                 <script>
-                    var folderBtn = document.querySelector('#upload-folder-btn')
-                    var fileBtn = document.querySelector('#upload-file-btn')
-                    var inputFolder = document.querySelector('#folder')
-                    var inputFile = document.querySelector('#file')
-                    var formFolder = document.querySelector('#form-folder')
-                    var formFile = document.querySelector('#form-file')
 
-                    folderBtn.onclick = e=>inputFolder.click()
-                    fileBtn.onclick = e=>inputFile.click()
-                    
-                    inputFile.onchange = (e)=>{
-                        formFile.submit()
-                    }
-                </script>
-            <% } else{ %>
-                <button id="upload-folder-btn" disabled>Upload folder</button>
-                <button id="upload-file-btn" disabled>Upload file</button>
-            <% } %>               
-        </aside>
-        <label id="drop-zone" for="selector">
-            <input type="file" name="selector" id="selector">
-            <section class="contents">
-                <% if(locals.currentUser && locals.contents){ %>
-                        <% contents.forEach(content=>{ %>
-                            <%- include('partials/content', {content}) %>
-                        <% }) %>
-                    
-                <% } %>
-            </section>
+<body>
+  <%- include('partials/header') %>
+  <main>
+    <% if(locals.currentUser && locals.folder) {%>
+    <aside>
+      <form id="form-folder" action="/storage/<%= folder.id %>/upload/folder" method="POST" style="display: none;"></form>
+      <input type="file" name="folder" id="folder" webkitdirectory style="display: none;">
+      <button id="upload-folder-btn">Upload folder</button>
+      <form id="form-file" action="/storage/<%= folder.id %>/upload/file" enctype="multipart/form-data" method="POST" style="display: none;">
+        <input type="file" name="file" id="file">
+      </form>
+      <button id="upload-file-btn">Upload file</button>
+      <button id="new-folder" onclick="document.querySelector('#modal-folder').classList.add('active')">New Folder</button>
+
+
+    </aside>
+    <% } else{ %>
+    <aside>
+      <button id="upload-folder-btn" disabled>Upload folder</button>
+      <button id="upload-file-btn" disabled>Upload file</button>
+      <button id="new-folder" disabled>New Folder</button>
+    </aside>
+    <% } %>
+
+    <label class="drop-zone" for="selector">
+      <input type="file" name="selector" id="selector">
+      <section class="contents">
+        <% if(locals.currentUser && locals.contents){ %>
+        <% contents.forEach(content=>{ %>
+        <%- include('partials/content', {content}) %>
+        <% }) %>
+        <% } %>
+
+
+      </section>
+
+    </label>
+  </main>
+  <% if(locals.currentUser && locals.folder){%>
+  <div id="modal-folder" class="modal modal-folder">
+    <span aria-label="close" class="close" onclick="this.parentElement.classList.remove('active')">X</span>
+    <form action="/storage/<%= folder.id %>/create/folder" method="POST">
+      <h1>Create New Folder</h1>
+      <div class="fields">
+        <label for="name">
+          <h2>Name</h2>
+          <input type="text" id="name" name="name" required>
         </label>
-    </main>
+      </div>
+      <button>Submit</button>
+    </form>
+  </div>
+  <% } %>
+
+  <script>
+    var folderBtn = document.querySelector('#upload-folder-btn')
+    var fileBtn = document.querySelector('#upload-file-btn')
+    var inputFolder = document.querySelector('#folder')
+    var inputFile = document.querySelector('#file')
+    var formFolder = document.querySelector('#form-folder')
+    var formFile = document.querySelector('#form-file')
+
+    folderBtn.onclick = e => inputFolder.click()
+    fileBtn.onclick = e => inputFile.click()
+
+    inputFile.onchange = (e) => {
+      formFile.submit()
+    }
+  </script>
+
+  <script>
+    document.querySelectorAll('.drop-zone')
+
+    document.querySelectorAll('article.content.file').forEach(file => {
+      file.addEventListener('click', (e) => {
+        e.stopPropagation()
+        e.preventDefault()
+      })
+    })
+
+    document.querySelectorAll('article.content.folder').forEach(folder => {
+      folder.addEventListener('click', (e) => {
+        e.stopPropagation()
+        e.preventDefault()
+        window.location.href = `/storage/${folder.id}/`
+      })
+    })
+  </script>
 </body>
+
 </html>

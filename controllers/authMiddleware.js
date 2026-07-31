@@ -9,19 +9,14 @@ function isAuthenticated (req,res,next){
 
 async function isOwner(req,res,next){
     try {
-        let {id: userId} = req.user
+        let {user} = req
         const {folderId} = req.params
-        let {folder} = req
         
-
-        if(!folder){
-            folder = await prisma.folder.findFirst({where: {id: folderId}})
-            req.folder = folder
-        }
-        if(folder.ownerId !== userId){
+        const folder = await prisma.folder.findFirst({where: {id: folderId}})        
+        if(folder !== null && folder.ownerId !== user.id){
             return res.status(401).render('401')
         }
-        
+        req.folder = folder
         next()
     } catch (err) {
         next(err)

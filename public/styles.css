@@ -1,212 +1,238 @@
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Lucida Console', 'Courier New', monospace;
-    --first-color: palegreen;
-    --second-color: teal;
-    --third-color: #455d7a;  
-    --bg-color: white;
-    --box-shadow: 0px 2px 1px grey;
-    --success-bg: palegreen;
-    --error-bg: lightcoral;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Lucida Console", "Courier New", monospace;
+  --first-color: palegreen;
+  --second-color: teal;
+  --third-color: lightblue;
+  --bg-color: white;
+  --box-shadow: 0px 2px 1px grey;
+  --success-bg: palegreen;
+  --error-bg: lightcoral;
 }
-
 
 .material-symbols-outlined {
   font-variation-settings:
-  'FILL' 0,
-  'wght' 400,
-  'GRAD' 0,
-  'opsz' 24
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
 }
 
-body, html{
-    min-width: 100vw;
-    min-height: 100vh;
+body,
+html {
+  min-width: 100vw;
+  min-height: 100vh;
 }
 
-body{
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
-main{
-    flex: 1;
-    display: flex;
-    gap: 5px;
-    justify-content: center;
-    padding: 5px;
+main {
+  flex: 1;
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  padding: 5px;
 }
 
-header{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background-color: whitesmoke;
-    z-index: 1;
-    border-radius: 10px;
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: whitesmoke;
+  z-index: 1;
+  border-radius: 10px;
 }
 
-div.links{
-    display: flex;
-    gap: 5px;
+div.links {
+  display: flex;
+  gap: 5px;
 }
 
-h1.logo{
-    color: var(--second-color);
-    font-weight: bolder;
-    font-style: italic;
+h1.logo {
+  color: var(--second-color);
+  font-weight: bolder;
+  font-style: italic;
 }
 
-a{
-    color: var(--second-color);
+a {
+  color: var(--second-color);
 }
 
-form{
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    width: 40%;
-    gap: 20px;
-    box-shadow: var(--box-shadow);
-    background-color: var(--bg-color);
-    color: var(--second-color);
-    padding: 20px;
-    height: fit-content;
-    border-radius: 10px;
+form {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 40%;
+  gap: 20px;
+  box-shadow: var(--box-shadow);
+  background-color: var(--bg-color);
+  color: var(--second-color);
+  padding: 20px;
+  height: fit-content;
+  border-radius: 10px;
 }
 
-form > div.fields{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    font-weight: bold;
-    flex: 1;
+form > div.fields {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  flex: 1;
 }
 
-form label{
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    
+form label {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-form input{
-    border: none;
-    border-bottom: medium solid black;
-    width: 80%;
-    background-color: whitesmoke;
-    padding: 5px;
+form input {
+  border: none;
+  border-bottom: medium solid black;
+  width: 80%;
+  background-color: whitesmoke;
+  padding: 5px;
 }
 
-input[type="email"]{
-    text-align: center;
+input[type="email"] {
+  text-align: center;
 }
 
-label:has(input:required) > h2::after{
-    content: '*';
-    color: red;
-    font-weight: bold;
+label:has(input:required) > h2::after {
+  content: "*";
+  color: red;
+  font-weight: bold;
 }
 
-button{
-    background-color: var(--second-color);
-    color: white;
-    font-weight: bolder;
-    text-shadow: 0px 1px 1px black;
-    border-radius: 15px;
-    padding: 5px;
-    width: fit-content;
-    align-self: center;
-    cursor: pointer;
+button {
+  background-color: var(--second-color);
+  color: white;
+  font-weight: bolder;
+  text-shadow: 0px 1px 1px black;
+  border-radius: 15px;
+  padding: 5px;
+  width: fit-content;
+  align-self: center;
+  cursor: pointer;
 }
 
-button:disabled{
-    background-color: grey;
-    opacity: 0.4;
-    cursor: not-allowed;
+button:disabled {
+  background-color: grey;
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-aside button{
-    width: 100%;
-    height: fit-content;
-    
+aside button {
+  width: 100%;
+  height: fit-content;
 }
-
-
 
 @keyframes flash {
-    from{
-        height: 0px;
-    }
+  from {
+    height: 0px;
+  }
 
-    to{
-        height: 100px;
-    }
-}
-
-.flash{
+  to {
     height: 100px;
-    animation: flash 2s forwards;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: inset 0px 0px 2px 1px;
-
+  }
 }
 
-
-.success{
-    background-color: var(--first-color);
-    color: darkgreen;
+.flash {
+  height: 100px;
+  animation: flash 2s forwards;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: inset 0px 0px 2px 1px;
 }
 
-.error{
-    background-color: var(--error-bg);
-    color: darkred;
+.success {
+  background-color: var(--first-color);
+  color: darkgreen;
 }
 
-span.close{
-    position: absolute;
-    left: 5px;
-    top: 5px;
-    border: medium solid darkred;
-    padding: 5px;
-    cursor: pointer;
+.error {
+  background-color: var(--error-bg);
+  color: darkred;
 }
 
-main > #drop-zone{
-    flex: 1;
-    display: flex;
-    justify-content: center; 
-    border: medium dotted grey;  
+span.close {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  color: darkred;
+  border: medium solid darkred;
+  padding: 5px;
+  cursor: pointer;
 }
 
-#drop-zone > input{
-    display: none;
+.drop-zone {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  border: medium dotted grey;
+  padding: 10px;
 }
 
-#drop-zone > section.contents{
-    flex: 1;
+.drop-zone > input {
+  display: none;
 }
 
-aside{
-    display: flex;
-    padding: 15px;
-    gap: 10px;
-    flex-direction: column;
-    background-color: whitesmoke;
-    border-radius: 10px;
+.drop-zone > section.contents {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-.content{
-    display: flex;
-    align-items: center;
-    background-color: whitesmoke;
+section.contents > .content:hover {
+  background-color: var(--third-color);
+}
+
+aside {
+  display: flex;
+  padding: 15px;
+  gap: 10px;
+  flex-direction: column;
+  background-color: whitesmoke;
+  border-radius: 10px;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  border-bottom: thin solid grey;
+  background-color: whitesmoke;
+  cursor: pointer;
+}
+
+div.modal.active {
+  height: 100vh;
+  width: 100vw;
+}
+
+div.modal {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(211, 211, 211, 0.174);
+  backdrop-filter: blur(2px);
+  z-index: 1;
+}
+
+form > h1 {
+  color: black;
 }

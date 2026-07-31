@@ -9,4 +9,6 @@ const upload = multer({storage})
 storageRouter.get('/',storageControllers.getStorageIndex)
 storageRouter.get('/:folderId', isAuthenticated, isOwner, storageControllers.getFolder)
 storageRouter.post('/:folderId/upload/file', isAuthenticated, isOwner, upload.single('file'), storageControllers.uploadFileToFolder)
+storageRouter.post('/:folderId/create/folder', isAuthenticated, isOwner, storageControllers.createFolder)
+
 module.exports = storageRouter
