@@ -7,88 +7,125 @@
   <main>
     <% if(locals.currentUser && locals.folder) {%>
     <aside>
-      <form id="form-folder" action="/storage/<%= folder.id %>/upload/folder" method="POST" style="display: none;"></form>
-      <input type="file" name="folder" id="folder" webkitdirectory style="display: none;">
-      <button id="upload-folder-btn">Upload folder</button>
-      <form id="form-file" action="/storage/<%= folder.id %>/upload/file" enctype="multipart/form-data" method="POST" style="display: none;">
-        <input type="file" name="file" id="file">
+      <form id="form-folder" action="/storage/<%= folder.id %>/upload/folder" enctype="multipart/form-data" method="POST">
+        <input type="file" onchange="this.parentElement.submit()" name="folder" id="input-folder" style="display: none;" webkitdirectory multiple>
+        <label class="button" for="input-folder">Upload folder</label>
       </form>
-      <button id="upload-file-btn">Upload file</button>
-      <button id="new-folder" onclick="document.querySelector('#modal-folder').classList.add('active')">New Folder</button>
-
-
+      <form id="form-file" action="/storage/<%= folder.id %>/upload/file" enctype="multipart/form-data" method="POST">
+        <input type="file" onchange="this.parentElement.submit()" name="file" id="input-file" style="display: none;" webkitdirectory multiple>
+        <label class="button" for="input-file">Upload file</label>
+      </form>
+      <label class="button" id="new-folder" onclick="document.querySelector('#modal-folder').classList.add('active')">New Folder</label>
     </aside>
     <% } else{ %>
     <aside>
-      <button id="upload-folder-btn" disabled>Upload folder</button>
-      <button id="upload-file-btn" disabled>Upload file</button>
-      <button id="new-folder" disabled>New Folder</button>
+      <label class="button" id="upload-folder-btn" disabled>Upload folder</label>
+      <label class="button" id="upload-file-btn" disabled>Upload file</label>
+      <label class="button" id="new-folder" disabled>New Folder</label>
     </aside>
     <% } %>
 
-    <label class="drop-zone" for="selector">
-      <input type="file" name="selector" id="selector">
-      <section class="contents">
-        <% if(locals.currentUser && locals.contents){ %>
-        <% contents.forEach(content=>{ %>
-        <%- include('partials/content', {content}) %>
-        <% }) %>
-        <% } %>
-
-
-      </section>
-
-    </label>
+    <% if(locals.currentUser && locals.folder){ %>
+    <div id="<%= folder.id %>" class="drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragleaveHandler(event)">
+      <% if(locals.currentUser && locals.contents){ %>
+      <% contents.forEach(content=>{ %>
+      <%- include('partials/content', {content}) %>
+      <% }) %>
+      <% } %>
+    </div>
+    <% } else { %>
+    <div class="drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)">
+      <% if(locals.currentUser && locals.contents){ %>
+      <% contents.forEach(content=>{ %>
+      <%- include('partials/content', {content}) %>
+      <% }) %>
+      <% } %>
+    </div>
+    <% } %>
   </main>
   <% if(locals.currentUser && locals.folder){%>
-  <div id="modal-folder" class="modal modal-folder">
-    <span aria-label="close" class="close" onclick="this.parentElement.classList.remove('active')">X</span>
-    <form action="/storage/<%= folder.id %>/create/folder" method="POST">
-      <h1>Create New Folder</h1>
-      <div class="fields">
-        <label for="name">
-          <h2>Name</h2>
-          <input type="text" id="name" name="name" required>
-        </label>
-      </div>
-      <button>Submit</button>
-    </form>
-  </div>
+  <%- include('partials/createFolderModal') %>
   <% } %>
-
   <script>
-    var folderBtn = document.querySelector('#upload-folder-btn')
-    var fileBtn = document.querySelector('#upload-file-btn')
-    var inputFolder = document.querySelector('#folder')
-    var inputFile = document.querySelector('#file')
-    var formFolder = document.querySelector('#form-folder')
-    var formFile = document.querySelector('#form-file')
-
-    folderBtn.onclick = e => inputFolder.click()
-    fileBtn.onclick = e => inputFile.click()
-
-    inputFile.onchange = (e) => {
-      formFile.submit()
+    function dragOverHandler(e) {
+      e.preventDefault()
+      e.stopPropagation()
+      e.target.classList.add('active')
+      //console.log(e.target);
     }
   </script>
-
   <script>
-    document.querySelectorAll('.drop-zone')
+    function dropHandler(e) {
+      e.preventDefault()
+      e.stopPropagation()
+      e.target.classList.remove('active')
+      //console.log('dropped');
+      const folderId = e.target.id
 
-    document.querySelectorAll('article.content.file').forEach(file => {
-      file.addEventListener('click', (e) => {
-        e.stopPropagation()
-        e.preventDefault()
-      })
-    })
+      let files = []
 
-    document.querySelectorAll('article.content.folder').forEach(folder => {
+      for (const item of e.dataTransfer.items) {
+        entry = item.webkitGetAsEntry()
+        traverseEntry(entry, files)
+      }
+
+      console.log(files);
+      console.log(files.length);
+
+      let formData = new FormData()
+
+      for (const file of files) {
+        formData.append('folder', file)
+      }
+      fetch(`/storage/${e.target.id}/upload/files`, {
+          method: "POST",
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => console.log(data))
+
+
+
+      function traverseEntry(entry, files) {
+        if (entry.isDirectory) {
+          entry.createReader().readEntries(function(entries) {
+            for (const entry of entries) {
+              traverseEntry(entry, files)
+            }
+          })
+        } else {
+          //let fullPath = entry.fullPath
+          let filePromise = new Promise(function(resolve, reject) {
+            entry.file(function(file) {
+              resolve(file)
+            }, function(error) {
+              reject(error)
+            })
+          })
+          files.push(filePromise)
+        }
+      }
+    }
+  </script>
+  <script>
+    function dragleaveHandler(e) {
+      e.target.classList.remove('active')
+    }
+  </script>
+  <script>
+    document.querySelectorAll('div.content.folder').forEach(folder => {
       folder.addEventListener('click', (e) => {
-        e.stopPropagation()
         e.preventDefault()
+        e.stopPropagation()
         window.location.href = `/storage/${folder.id}/`
       })
     })
+  </script>
+  <script>
+    function prueba(e) {
+      console.log(e.dataTransfer);
+
+    }
   </script>
 </body>
 

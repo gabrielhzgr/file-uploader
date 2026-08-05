@@ -1,0 +1,13 @@
+<div id="modal-folder" class="modal modal-folder">
+  <span aria-label="close" class="close" onclick="this.parentElement.classList.remove('active')">X</span>
+  <form class="form" action="/storage/<%= folder.id %>/create/folder" method="POST">
+    <h1>Create New Folder</h1>
+    <div class="fields">
+      <label for="name">
+        <h2>Name</h2>
+        <input type="text" id="name" name="name" required>
+      </label>
+    </div>
+    <button class="button">Submit</button>
+  </form>
+</div>

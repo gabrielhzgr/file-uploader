@@ -24,6 +24,7 @@ body,
 html {
   min-width: 100vw;
   min-height: 100vh;
+  user-select: none;
 }
 
 body {
@@ -65,7 +66,7 @@ a {
   color: var(--second-color);
 }
 
-form {
+.form {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -114,7 +115,7 @@ label:has(input:required) > h2::after {
   font-weight: bold;
 }
 
-button {
+.button {
   background-color: var(--second-color);
   color: white;
   font-weight: bolder;
@@ -124,17 +125,13 @@ button {
   width: fit-content;
   align-self: center;
   cursor: pointer;
+  text-align: center;
 }
 
-button:disabled {
+.button:disabled {
   background-color: grey;
   opacity: 0.4;
   cursor: not-allowed;
-}
-
-aside button {
-  width: 100%;
-  height: fit-content;
 }
 
 @keyframes flash {
@@ -170,28 +167,22 @@ span.close {
   position: absolute;
   left: 5px;
   top: 5px;
-  color: darkred;
-  border: medium solid darkred;
+  color: white;
+  font-weight: bolder;
   padding: 5px;
   cursor: pointer;
 }
 
-.drop-zone {
+main > .drop-zone {
   flex: 1;
+  flex-direction: column;
   display: flex;
-  justify-content: center;
   border: medium dotted grey;
   padding: 10px;
 }
 
-.drop-zone > input {
-  display: none;
-}
-
-.drop-zone > section.contents {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+.drop-zone.active {
+  background-color: lightblue;
 }
 
 section.contents > .content:hover {
@@ -207,11 +198,13 @@ aside {
   border-radius: 10px;
 }
 
+aside .button {
+  width: 100%;
+}
 .content {
   display: flex;
   align-items: center;
   border-bottom: thin solid grey;
-  background-color: whitesmoke;
   cursor: pointer;
 }
 

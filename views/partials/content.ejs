@@ -1,40 +1,39 @@
 <% if(content.type=='folder'){ %>
-<article id="<%= content.id %>" class="content folder">
-
+<div id="<%= content.id %>" class="content folder drop-zone">
   <span class="material-symbols-outlined">
     folder
   </span>
   <span>
     <%= content.name %>
   </span>
-</article>
+</div>
 <% }else if(content.type.startsWith('image')){%>
-<article class="content file">
+<div class="content file">
   <span class="material-symbols-outlined">
     image
   </span>
   <span>
     <%= content.name %>
   </span>
-</article>
+</div>
 <% }else if(content.type.startsWith('video')){ %>
-<article class="content file">
+<div class="content file">
   <span class="material-symbols-outlined">
     theaters
   </span>
   <span>
     <%= content.name %>
   </span>
-</article>
+</div>
 
 <% }else{ %>
-<article class="content file">
+<div class="content file">
   <span class="material-symbols-outlined">
     article
   </span>
   <span>
     <%= content.name %>
   </span>
-</article>
+</div>
 
 <% } %>

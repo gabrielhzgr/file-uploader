@@ -1,6 +1,7 @@
 const prisma = require("../lib/prisma");
 const supabase = require("../lib/supabase");
 const path = require("node:path");
+//const getHierarchy = require("../lib/getHierarchy.js");
 
 async function getStorageIndex(req, res, next) {
   if (!req.isAuthenticated()) {
@@ -32,7 +33,7 @@ async function getFolder(req, res, next) {
   }
 }
 
-async function uploadFileToFolder(req, res, next) {
+async function uploadFile(req, res, next) {
   try {
     const { file, user } = req;
     const { folderId } = req.params;
@@ -55,6 +56,20 @@ async function uploadFileToFolder(req, res, next) {
   }
 }
 
+async function uploadFiles(req, res, next) {
+  try {
+    const { files } = req;
+    const hierarchy = {};
+    for (const file of files) {
+    }
+  } catch (err) {
+    next(err);
+  }
+  console.log(req.files);
+
+  //TODO: Ver porque los files no llegan desde el fetch en storage.ejs
+}
+
 async function createFolder(req, res, next) {
   try {
     const { user } = req;
@@ -73,6 +88,7 @@ async function createFolder(req, res, next) {
 module.exports = {
   getStorageIndex,
   getFolder,
-  uploadFileToFolder,
+  uploadFile,
+  uploadFiles,
   createFolder,
 };
