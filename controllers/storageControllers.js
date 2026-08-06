@@ -70,7 +70,7 @@ async function uploadFiles(req, res, next) {
   //TODO: Ver porque los files no llegan desde el fetch en storage.ejs
 }
 
-async function createFolder(req, res, next) {
+async function registerFolder(req, res, next) {
   try {
     const { user } = req;
     const { name } = req.body;
@@ -79,11 +79,21 @@ async function createFolder(req, res, next) {
     await prisma.folder.create({
       data: { name, parentFolderId: folderId, ownerId: user.id },
     });
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function createFolder(req, res, next) {
+  try {
+    await registerFolder(req, res, next);
     res.redirect(`/storage/${folderId}/`);
   } catch (err) {
     next(err);
   }
 }
+
+async function name(params) {}
 
 module.exports = {
   getStorageIndex,

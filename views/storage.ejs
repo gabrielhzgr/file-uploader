@@ -8,7 +8,7 @@
     <% if(locals.currentUser && locals.folder) {%>
     <aside>
       <form id="form-folder" action="/storage/<%= folder.id %>/upload/folder" enctype="multipart/form-data" method="POST">
-        <input type="file" onchange="this.parentElement.submit()" name="folder" id="input-folder" style="display: none;" webkitdirectory multiple>
+        <input type="file" onchange="testing(event)" name="folder" id="input-folder" style="display: none;" webkitdirectory multiple>
         <label class="button" for="input-folder">Upload folder</label>
       </form>
       <form id="form-file" action="/storage/<%= folder.id %>/upload/file" enctype="multipart/form-data" method="POST">
@@ -55,56 +55,81 @@
     }
   </script>
   <script>
-    function dropHandler(e) {
+    function testing(e) {
+      console.log(e.dataTransfer.items);
+    }
+  </script>
+
+  <script>
+    async function dropHandler(e) {
       e.preventDefault()
       e.stopPropagation()
       e.target.classList.remove('active')
       //console.log('dropped');
       const folderId = e.target.id
 
-      let files = []
+      let entriesPromises = []
 
       for (const item of e.dataTransfer.items) {
-        entry = item.webkitGetAsEntry()
-        traverseEntry(entry, files)
+        let entry = item.webkitGetAsEntry()
+        //console.log(entry);
+        entriesPromises.push(traverseEntry(entry))
       }
+      //this is an array of arrays of entries /e.g [Array(3), Array(7)]
+      const arraysEntries = await Promise.all(entriesPromises)
+      let flatArrayEntries = []
+      arraysEntries.forEach(array => flatArrayEntries.push(...array))
+      console.log(arraysEntries);
+      console.log(flatArrayEntries);
+      let filesPromises = flatArrayEntries.map(fileEntry => {
+        return new Promise(function(resolve, reject) {
+          fileEntry.file(function(file) {
+            resolve(file)
+          })
+        }, function(error) {
+          reject(error)
+        })
+      })
 
+      let files = await Promise.all(filesPromises)
       console.log(files);
-      console.log(files.length);
-
-      let formData = new FormData()
-
-      for (const file of files) {
-        formData.append('folder', file)
+      async function traverse() {
+        console.log('hola');
+        return
       }
+
+      async function traverseEntry(entry) {
+        if (entry.isDirectory) {
+          const dirReader = entry.createReader()
+          const fileEntries = await new Promise(function(resolve, reject) {
+            let fileEntries = []
+            dirReader.readEntries(async function(entries) {
+              for (const entry of entries) {
+                const newEntries = await traverseEntry(entry)
+                fileEntries = [...fileEntries, ...newEntries]
+              }
+              resolve(fileEntries)
+            })
+          })
+          return fileEntries
+
+          //console.log('finished promise');
+
+        } else {
+          //let fullPath = entry.fullPath
+          console.log(entry.fullPath);
+          return [entry]
+        }
+      }
+
+      /*
       fetch(`/storage/${e.target.id}/upload/files`, {
           method: "POST",
           body: formData
         })
         .then(response => response.json())
         .then(data => console.log(data))
-
-
-
-      function traverseEntry(entry, files) {
-        if (entry.isDirectory) {
-          entry.createReader().readEntries(function(entries) {
-            for (const entry of entries) {
-              traverseEntry(entry, files)
-            }
-          })
-        } else {
-          //let fullPath = entry.fullPath
-          let filePromise = new Promise(function(resolve, reject) {
-            entry.file(function(file) {
-              resolve(file)
-            }, function(error) {
-              reject(error)
-            })
-          })
-          files.push(filePromise)
-        }
-      }
+      */
     }
   </script>
   <script>
