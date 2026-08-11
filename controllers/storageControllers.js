@@ -33,7 +33,7 @@ async function getFolder(req, res, next) {
   }
 }
 
-async function uploadFile(req, res, next) {
+async function uploadFiles(req, res, next) {
   try {
     const { file, user } = req;
     const { folderId } = req.params;
@@ -56,17 +56,47 @@ async function uploadFile(req, res, next) {
   }
 }
 
-async function uploadFiles(req, res, next) {
+async function uploadMultiple(req, res, next) {
+  //DRAGDROP folders and files
+
+  //TODO: Consider if appending folders in
+  // formData instead of JSON.parse(req.body.folders)
+  //here
+
+  //TODO: Write transaction to insert folders in db
+
+  //TODO: Write transaction to insert files in db
+
+  //TODO: If name of folder already exists send a popup to user
+  //to select if keep or replace folder
+
+  //TODO: Write logic to check if directory already exists in
+  //:folderId, example what if user uploaded folder named Webcam
+  //to folder abc-123 but that folder already had a folder named Webcam
+  //IF missing alt indexes IS empty and last alt index IS empty too
+  //update last alt index to 1 then insert the folder as
+  //"name of original folder (1)"
+  //IF missing alt indexes IS NOT empty insert the folder as
+  //"name of original folder (lowest missing alt index)""
+  //then delete it from missing alt indexes
+  //IF missing alt indexes IS EMPTY and last alt index IS NOT empty
+  //insert the folder as "name of original folder (last_alt_index + 1)"
+  //and update last alt index by incrementing it by 1
+
+  // REPEAT SAME LOGIC  in uploadFiles with already existing name
+  // on uploadFile endpoint
+
   try {
+    console.log("hello from uploadFiles");
     const { files } = req;
+    let { folders, rootFolder } = req.body;
+
     const hierarchy = {};
-    for (const file of files) {
-    }
+    //console.log(files);
+    res.json({ prop1: "hola" });
   } catch (err) {
     next(err);
   }
-  console.log(req.files);
-
   //TODO: Ver porque los files no llegan desde el fetch en storage.ejs
 }
 
@@ -98,7 +128,7 @@ async function name(params) {}
 module.exports = {
   getStorageIndex,
   getFolder,
-  uploadFile,
   uploadFiles,
+  uploadMultiple,
   createFolder,
 };

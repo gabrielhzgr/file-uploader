@@ -17,18 +17,18 @@ storageRouter.get(
   storageControllers.getFolder,
 );
 storageRouter.post(
-  "/:folderId/upload/file",
-  isAuthenticated,
-  isOwner,
-  upload.array("file"),
-  storageControllers.uploadFile,
-);
-storageRouter.post(
   "/:folderId/upload/files",
   isAuthenticated,
   isOwner,
-  upload.array("folder"),
+  upload.array("file"),
   storageControllers.uploadFiles,
+);
+storageRouter.post(
+  "/:folderId/upload/multiple",
+  isAuthenticated,
+  isOwner,
+  upload.array("files"),
+  storageControllers.uploadMultiple,
 );
 
 storageRouter.post(
