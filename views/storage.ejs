@@ -62,36 +62,34 @@
         const folderId = e.target.id
 
         let entriesPromises = []
-        let formData = new FormData()
+
+
 
         for (const item of e.dataTransfer.items) {
           let entry = item.webkitGetAsEntry()
-          entriesPromises.push(traverseEntry(entry, folderId))
-
-          if (entry.isDirectory) {
-            formData.append('rootFolder', entry.name)
-          }
-
+          entriesPromises.push(traverseEntry(entry, folderId, isDirectChild = true))
         }
 
         // Array like [{fileEntries: Array(), directories: Array()},
         // {fileEntries: Array(), directories: Array()},]
         const results = await Promise.all(entriesPromises)
         let fileEntries = results.map(result => result.fileEntries)
-        let directories = results.map(result => result.directories)
-        //arraysEntries.forEach(array => flatArrayEntries.push(...array))
+        let folders = results.map(result => result.folders)
 
         const flattenArrays = (totalArray, array) => [...totalArray, ...array]
 
         let flatArrayEntries = fileEntries.reduce(flattenArrays)
-        let flatArrayDirectories = directories.reduce(flattenArrays)
+        let flatArrayFolders = folders.reduce(flattenArrays)
 
-        let filesPromises = flatArrayEntries.map(fileEntry => {
+        let filesPromises = flatArrayEntries.map(fileObj => {
+          const {
+            details
+          } = fileObj
           return new Promise(function(resolve, reject) {
-            fileEntry.entry.file(function(file) {
+            fileObj.entry.file(function(file) {
               resolve({
                 file,
-                parentId: fileEntry.parentId
+                details
               })
             })
           }, function(error) {
@@ -99,22 +97,58 @@
           })
         })
 
-        let files = await Promise.all(filesPromises)
 
-        formData.append('folders', JSON.stringify(flatArrayDirectories))
+        let formDataUpload = new FormData()
+        let formDataCheck = new FormData()
+
+        let files = await Promise.all(filesPromises)
+        // Check if files and folders already exist at the folder we are uploading
+        let rootItems = []
 
         for (const file of files) {
-          formData.append("files", file.file)
-          formData.append("parentId", file.parentId)
+          formDataUpload.append('files', file)
+          formDataUpload.append('details_files', JSON.stringify(file.details))
+          if (file.details.isDirectChild) {
+            formDataCheck.append('rootItems', JSON.stringify({
+              id: file.details.id,
+              type: 'file',
+              name: file.details.name
+            }))
+          }
         }
 
-        fetch(`/storage/${e.target.id}/upload/multiple`, {
+        for (const folder of flatArrayFolders) {
+          formDataUpload.append('folders', JSON.stringify(folder))
+          if (folder.isDirectChild) {
+            formDataCheck.append('rootItems', JSON.stringify({
+              id: folder.id,
+              type: 'folder',
+              name: folder.name
+            }))
+          }
+        }
+
+        formDataCheck.append('test', 'peapa')
+
+        fetch(`/storage/${e.target.id}/check/existing`, {
             method: "POST",
-            body: formData
+            body: formDataCheck
           })
           .then(response => response.json())
           .then(data => console.log(data))
           .catch(err => alert(err))
+
+        /*
+        fetch(`/storage/${e.target.id}/upload/multiple`, {
+            method: "POST",
+            body: formData //rootFolders, files, parentsIds, folders
+          })
+          .then(response => response.json())
+          .then(data => console.log(data))
+          .catch(err => alert(err))
+        */
+
+
       } catch (err) {
         alert(err)
       }
@@ -122,51 +156,50 @@
     }
   </script>
   <script>
-    //TODO: Check if you can too traverse a single folder
-    //for /storage/:folderId/upload/folder
-    //using traverseEntry and getting event.dataTransfer items
-    //from input file onChange
-  </script>
-  <script>
-    async function traverseEntry(entry, parentId) {
+    async function traverseEntry(entry, parentId, isDirectChild = true) {
 
       if (!entry.isDirectory) {
         return {
           fileEntries: [{
             entry,
-            parentId
+            details: {
+              id: crypto.randomUUID(),
+              name: entry.name,
+              parentId,
+              isDirectChild
+            }
           }],
-          directories: []
+          folders: []
         }
       } else {
         const {
           fileEntries,
-          directories
+          folders
         } = await new Promise(function(resolve, reject) {
           let fileEntries = []
-          let folderId = crypto.randomUUID()
-          let directories = [{
+          let folders = [{
             name: entry.name,
-            folderId,
-            parentId
+            id: crypto.randomUUID(),
+            parentId,
+            isDirectChild
           }]
 
           entry.createReader().readEntries(async function(entries) {
             for (const entry of entries) {
-              let result = await traverseEntry(entry, folderId)
+              let result = await traverseEntry(entry, folderId, isDirectChild = false)
               fileEntries = [...fileEntries, ...result.fileEntries]
-              directories = [...directories, ...result.directories]
+              folders = [...folders, ...result.folders]
             }
 
             resolve({
               fileEntries,
-              directories
+              folders
             })
           })
         })
         return {
           fileEntries,
-          directories
+          folders
         }
       }
     }

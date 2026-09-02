@@ -38,4 +38,12 @@ storageRouter.post(
   storageControllers.createFolder,
 );
 
+storageRouter.post(
+  "/:folderId/check/existing",
+  isAuthenticated,
+  isOwner,
+  upload.array("rootItems"),
+  storageControllers.checkExisting,
+);
+
 module.exports = storageRouter;

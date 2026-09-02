@@ -1,3 +1,4 @@
+const { log } = require("node:console");
 const prisma = require("../lib/prisma");
 const supabase = require("../lib/supabase");
 const path = require("node:path");
@@ -57,8 +58,6 @@ async function uploadFiles(req, res, next) {
 }
 
 async function uploadMultiple(req, res, next) {
-  //DRAGDROP folders and files
-
   //TODO: Consider if appending folders in
   // formData instead of JSON.parse(req.body.folders)
   //here
@@ -89,15 +88,49 @@ async function uploadMultiple(req, res, next) {
   try {
     console.log("hello from uploadFiles");
     const { files } = req;
-    let { folders, rootFolder } = req.body;
+    let { parentIds, atRootFolders, notAtRootFolders } = req.body;
+    folders = JSON.parse(folders);
 
-    const hierarchy = {};
-    //console.log(files);
+    console.log(files);
+    console.log(parentIds);
+    console.log(rootFolders);
+    console.log(folders);
+
     res.json({ prop1: "hola" });
   } catch (err) {
     next(err);
   }
-  //TODO: Ver porque los files no llegan desde el fetch en storage.ejs
+}
+
+//body: [{id: uuid(), type: 'folder|file'}, {}]
+async function checkExisting(req, res, next) {
+  let { rootItems } = req.body;
+  rootItems = Array.isArray(rootItems) ? rootItems : [...rootItems];
+  const { folderId } = req.params;
+  const duplicating = false;
+
+  for (let item of rootItems) {
+    item = JSON.parse(item);
+    if (item.type == "folder") {
+      const folder = await prisma.folder.findFirst({
+        where: { parentFolderId: folderId, name: item.name },
+      });
+      if (folder) {
+        return res.json({ duplicating: true });
+      }
+    } else {
+      const file = await prisma.file.findFirst({
+        where: { folderId: folderId, name: item.name },
+      });
+      if (file) {
+        return res.json({ duplicating: true });
+      }
+    }
+  }
+
+  console.log("error xd");
+
+  res.json({ duplicating });
 }
 
 async function registerFolder(req, res, next) {
@@ -123,12 +156,11 @@ async function createFolder(req, res, next) {
   }
 }
 
-async function name(params) {}
-
 module.exports = {
   getStorageIndex,
   getFolder,
   uploadFiles,
   uploadMultiple,
   createFolder,
+  checkExisting,
 };
