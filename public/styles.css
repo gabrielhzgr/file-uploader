@@ -128,7 +128,7 @@ label:has(input:required) > h2::after {
   text-align: center;
 }
 
-.button:disabled {
+.button[disabled] {
   background-color: grey;
   opacity: 0.4;
   cursor: not-allowed;
@@ -164,6 +164,7 @@ label:has(input:required) > h2::after {
 }
 
 span.close {
+  text-shadow: 1px -1px grey;
   position: absolute;
   left: 5px;
   top: 5px;
@@ -171,6 +172,7 @@ span.close {
   font-weight: bolder;
   padding: 5px;
   cursor: pointer;
+  color: var(--second-color);
 }
 
 main > .drop-zone {
@@ -183,6 +185,14 @@ main > .drop-zone {
 
 .drop-zone.active {
   background-color: lightblue;
+}
+
+.drop-zone.disabled {
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: rgba(128, 128, 128, 0.746);
 }
 
 section.contents > .content:hover {
@@ -224,6 +234,21 @@ div.modal {
   background-color: rgba(211, 211, 211, 0.174);
   backdrop-filter: blur(2px);
   z-index: 1;
+}
+
+div.modal.actions > div.info {
+  box-shadow: var(--box-shadow);
+  background-color: var(--bg-color);
+  color: var(--second-color);
+  padding: 20px;
+  height: fit-content;
+  border-radius: 10px;
+}
+
+div.modal.actions > div.info > div.buttons {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 form > h1 {

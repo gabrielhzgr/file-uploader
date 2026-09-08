@@ -86,15 +86,12 @@ async function uploadMultiple(req, res, next) {
   // on uploadFile endpoint
 
   try {
-    console.log("hello from uploadFiles");
     const { files } = req;
-    let { parentIds, atRootFolders, notAtRootFolders } = req.body;
-    folders = JSON.parse(folders);
+    let { detailsFiles, folders, action } = req.body;
 
     console.log(files);
-    console.log(parentIds);
-    console.log(rootFolders);
     console.log(folders);
+    console.log(action);
 
     res.json({ prop1: "hola" });
   } catch (err) {
@@ -102,35 +99,37 @@ async function uploadMultiple(req, res, next) {
   }
 }
 
-//body: [{id: uuid(), type: 'folder|file'}, {}]
 async function checkExisting(req, res, next) {
-  let { rootItems } = req.body;
-  rootItems = Array.isArray(rootItems) ? rootItems : [...rootItems];
+  let { rootFiles, rootFolders } = req.body;
   const { folderId } = req.params;
-  const duplicating = false;
-
-  for (let item of rootItems) {
-    item = JSON.parse(item);
-    if (item.type == "folder") {
-      const folder = await prisma.folder.findFirst({
-        where: { parentFolderId: folderId, name: item.name },
-      });
-      if (folder) {
-        return res.json({ duplicating: true });
+  if (rootFiles) {
+    for (const rootFile of rootFiles) {
+      if (!Array.isArray(rootFiles)) {
+        rootFolders = [rootFiles];
       }
-    } else {
       const file = await prisma.file.findFirst({
-        where: { folderId: folderId, name: item.name },
+        where: { folderId: folderId, name: rootFile },
       });
       if (file) {
         return res.json({ duplicating: true });
       }
     }
   }
+  if (rootFolders) {
+    if (!Array.isArray(rootFolders)) {
+      rootFolders = [rootFolders];
+    }
+    for (const rootFolder of rootFolders) {
+      const folder = await prisma.folder.findFirst({
+        where: { parentFolderId: folderId, name: rootFolder },
+      });
+      if (folder) {
+        return res.json({ duplicating: true });
+      }
+    }
+  }
 
-  console.log("error xd");
-
-  res.json({ duplicating });
+  res.json({ duplicating: false });
 }
 
 async function registerFolder(req, res, next) {

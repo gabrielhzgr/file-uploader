@@ -19,211 +19,35 @@
     </aside>
     <% } else{ %>
     <aside>
-      <label class="button" id="upload-folder-btn" disabled>Upload folder</label>
-      <label class="button" id="upload-file-btn" disabled>Upload file</label>
-      <label class="button" id="new-folder" disabled>New Folder</label>
+      <label class="button" id="upload-folder-btn" title="Log in to upload a foler" disabled>Upload folder</label>
+      <label class="button" id="upload-file-btn" title="Log in to upload a file" disabled>Upload file</label>
+      <label class="button" id="new-folder" title="Log in to create a Folder" disabled>New Folder</label>
     </aside>
     <% } %>
 
     <% if(locals.currentUser && locals.folder){ %>
-    <div id="<%= folder.id %>" class="drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragleaveHandler(event)">
-      <% if(locals.currentUser && locals.contents){ %>
+    <div id="<%= folder.id %>" class="drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)">
+      <% if(locals.contents){ %>
       <% contents.forEach(content=>{ %>
       <%- include('partials/content', {content}) %>
       <% }) %>
       <% } %>
     </div>
     <% } else { %>
-    <div class="drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)">
-      <% if(locals.currentUser && locals.contents){ %>
-      <% contents.forEach(content=>{ %>
-      <%- include('partials/content', {content}) %>
-      <% }) %>
-      <% } %>
+    <div class="drop-zone">
+      <h2>Log in to upload files</h2>
     </div>
     <% } %>
   </main>
   <% if(locals.currentUser && locals.folder){%>
   <%- include('partials/createFolderModal') %>
+  <%- include('partials/duplicateActionsModal') %>
+  <%- include('partials/dragOverHandler') %>
+  <%- include('partials/dropHandler') %>
+  <%- include('partials/dragLeaveHandler') %>
   <% } %>
-  <script>
-    function dragOverHandler(e) {
-      e.preventDefault()
-      e.stopPropagation()
-      e.target.classList.add('active')
-    }
-  </script>
-  <script>
-    async function dropHandler(e) {
-      try {
-        e.preventDefault()
-        e.stopPropagation()
-        e.target.classList.remove('active')
-        const folderId = e.target.id
-
-        let entriesPromises = []
 
 
-
-        for (const item of e.dataTransfer.items) {
-          let entry = item.webkitGetAsEntry()
-          entriesPromises.push(traverseEntry(entry, folderId, isDirectChild = true))
-        }
-
-        // Array like [{fileEntries: Array(), directories: Array()},
-        // {fileEntries: Array(), directories: Array()},]
-        const results = await Promise.all(entriesPromises)
-        let fileEntries = results.map(result => result.fileEntries)
-        let folders = results.map(result => result.folders)
-
-        const flattenArrays = (totalArray, array) => [...totalArray, ...array]
-
-        let flatArrayEntries = fileEntries.reduce(flattenArrays)
-        let flatArrayFolders = folders.reduce(flattenArrays)
-
-        let filesPromises = flatArrayEntries.map(fileObj => {
-          const {
-            details
-          } = fileObj
-          return new Promise(function(resolve, reject) {
-            fileObj.entry.file(function(file) {
-              resolve({
-                file,
-                details
-              })
-            })
-          }, function(error) {
-            reject(error)
-          })
-        })
-
-
-        let formDataUpload = new FormData()
-        let formDataCheck = new FormData()
-
-        let files = await Promise.all(filesPromises)
-        // Check if files and folders already exist at the folder we are uploading
-        let rootItems = []
-
-        for (const file of files) {
-          formDataUpload.append('files', file)
-          formDataUpload.append('details_files', JSON.stringify(file.details))
-          if (file.details.isDirectChild) {
-            formDataCheck.append('rootItems', JSON.stringify({
-              id: file.details.id,
-              type: 'file',
-              name: file.details.name
-            }))
-          }
-        }
-
-        for (const folder of flatArrayFolders) {
-          formDataUpload.append('folders', JSON.stringify(folder))
-          if (folder.isDirectChild) {
-            formDataCheck.append('rootItems', JSON.stringify({
-              id: folder.id,
-              type: 'folder',
-              name: folder.name
-            }))
-          }
-        }
-
-        formDataCheck.append('test', 'peapa')
-
-        fetch(`/storage/${e.target.id}/check/existing`, {
-            method: "POST",
-            body: formDataCheck
-          })
-          .then(response => response.json())
-          .then(data => console.log(data))
-          .catch(err => alert(err))
-
-        /*
-        fetch(`/storage/${e.target.id}/upload/multiple`, {
-            method: "POST",
-            body: formData //rootFolders, files, parentsIds, folders
-          })
-          .then(response => response.json())
-          .then(data => console.log(data))
-          .catch(err => alert(err))
-        */
-
-
-      } catch (err) {
-        alert(err)
-      }
-
-    }
-  </script>
-  <script>
-    async function traverseEntry(entry, parentId, isDirectChild = true) {
-
-      if (!entry.isDirectory) {
-        return {
-          fileEntries: [{
-            entry,
-            details: {
-              id: crypto.randomUUID(),
-              name: entry.name,
-              parentId,
-              isDirectChild
-            }
-          }],
-          folders: []
-        }
-      } else {
-        const {
-          fileEntries,
-          folders
-        } = await new Promise(function(resolve, reject) {
-          let fileEntries = []
-          let folders = [{
-            name: entry.name,
-            id: crypto.randomUUID(),
-            parentId,
-            isDirectChild
-          }]
-
-          entry.createReader().readEntries(async function(entries) {
-            for (const entry of entries) {
-              let result = await traverseEntry(entry, folderId, isDirectChild = false)
-              fileEntries = [...fileEntries, ...result.fileEntries]
-              folders = [...folders, ...result.folders]
-            }
-
-            resolve({
-              fileEntries,
-              folders
-            })
-          })
-        })
-        return {
-          fileEntries,
-          folders
-        }
-      }
-    }
-  </script>
-  <script>
-    function dragleaveHandler(e) {
-      e.target.classList.remove('active')
-    }
-  </script>
-  <script>
-    document.querySelectorAll('div.content.folder').forEach(folder => {
-      folder.addEventListener('click', (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        window.location.href = `/storage/${folder.id}/`
-      })
-    })
-  </script>
-  <script>
-    function prueba(e) {
-      console.log(e.dataTransfer);
-
-    }
-  </script>
 </body>
 
 </html>
