@@ -5,103 +5,235 @@
       if (e.currentTarget.classList.contains('drop-zone')) {
         e.stopPropagation()
         const folderId = e.currentTarget.id
-
-        const {
-          formDataUpload,
-          formDataCheck
-        } = await traverseDropItems(e)
-
-        const data = await fetchDuplicateCheck(formDataCheck, folderId)
-
-        if (data.duplicating) {
-          const modalDuplicate = document.querySelector('#modal-duplicate-actions')
-          modalDuplicate.classList.add('active')
-
-          modalDuplicate.querySelector('.button.replace').addEventListener('click', async (e) => {
-            await fetchUpload(formDataUpload, folderId, action = 'replace')
-          })
-          modalDuplicate.querySelector('.button.rename').addEventListener('click', async (e) => {
-            await fetchUpload(formDataUpload, folderId, action = 'rename')
-          })
-
-          const renameBtn = document.querySelector('#modal-duplicate-actions .button.rename').classList.add('active')
-        } else {
-          await fetchUpload(formDataUpload, folderId)
-        }
+        traverseDropItems(e)
       }
     } catch (err) {
       alert(err)
     }
   }
 </script>
+
+
 <script>
   async function traverseDropItems(e) {
     e.currentTarget.classList.remove('active')
     const folderId = e.currentTarget.id
 
-    let entriesPromises = []
+    let filesPromises = []
+    let formDuplicateCheck = new FormData()
+    let rootFolders = []
+    let rootFiles = []
+    let promiseResolve, promiseReject
+
+
+    const promiseDuplicateCheck = new Promise((resolve, reject) => {
+      promiseResolve = resolve
+      promiseReject = reject
+    })
 
     for (const item of e.dataTransfer.items) {
       let entry = item.webkitGetAsEntry()
-      entriesPromises.push(traverseEntry(entry, folderId, isDirectChild = true))
+      if (entry.isDirectory) {
+        //rootFolders.push(entry.name)
+        formDuplicateCheck.append('folders', entry.name)
+      } else {
+        //rootFiles.push(entry.name)
+        formDuplicateCheck.append('files', entry.name)
+      }
+
+      new Promise(function(resolve, reject) {
+          readEntryContents(entry, folderId)
+            // Array like [{fileObjects: Array({File, parentId}), folders: Array({})},
+            // {fileObjects: Array({File, parentId}), folders: Array(File)}]
+            //const results = await Promise.all(filesPromises)
+            .then(response => resolve(response))
+        })
+        .then(content => uploadItem(folderId, entry.isDirectory, entry.name, content, promiseDuplicateCheck))
     }
 
-    // Array like [{fileEntries: Array(), directories: Array()},
-    // {fileEntries: Array(), directories: Array()},]
-    const results = await Promise.all(entriesPromises)
-    let fileEntries = results.map(result => result.fileEntries)
-    let folders = results.map(result => result.folders)
 
-    const flattenArrays = (totalArray, array) => [...totalArray, ...array]
+    fetchDuplicateCheck(formDuplicateCheck, folderId).then(data => {
 
-    let flatArrayEntries = fileEntries.reduce(flattenArrays)
-    let flatArrayFolders = folders.reduce(flattenArrays)
+      if (data.duplicating) {
+        const modalDuplicate = document.querySelector('.modal.duplicate').classList.add('active')
+        const btnReplace = modalDuplicate.querySelector('button.rename')
+        const btnRename = modalDuplicate.querySelector('button.rename')
 
-    let filesPromises = flatArrayEntries.map(fileObj => {
-      const {
-        details
-      } = fileObj
-      return new Promise(function(resolve, reject) {
-        fileObj.entry.file(function(file) {
-          resolve({
-            file,
-            details
+        btnReplace.addEventListener('click', (e) => {
+          const data = {
+            action: 'replace'
+          }
+          promiseResolve(data)
+        })
+
+        btnRename.addEventListener('click', (e) => {
+          const data = {
+            action: 'rename'
+          }
+          promiseResolve(data)
+        })
+      } else {
+        const data = {
+          action: null
+        }
+        promiseResolve(data)
+      }
+    }).catch(err => console.log(err))
+
+
+  }
+</script>
+<script>
+  function uploadItem(parentId, isDirectory, name, content, promiseDuplicateCheck) {
+    console.log('upload item');
+
+    let parentElement = document.getElementById(parentId)
+
+    if (!parentElement.classList.contains('main')) {
+      parentElement = document.querySelector('.flash.progress')
+      if (!parentElement) {
+        parentElement = Object.assign(document.createElement('div'), {
+          className: 'flash progress'
+        })
+        document.body.prepend(parentElement)
+      }
+    }
+    let counterUpload = 0
+    let files
+    let file = isDirectory ? null : content.fileObjects[0].file
+    let childElement = document.createElement('div')
+    childElement.innerHTML = `
+    <div class="content loading">
+    <span class="material-symbols-outlined">
+      ${isDirectory ? 'folder': 
+      file.type.startsWith('image') ? 'image' :
+      file.type.startsWith('video') ? 'video' : 'article'}
+    </span>
+    <span>
+      ${name}
+    </span>
+    <span class="info">
+    ${isDirectory ? `Uploaded ${counterUpload} of ${content.fileObjects.length}` : 'Uploading'} 
+    </span>
+  </div>`
+    childElement = childElement.firstElementChild
+    parentElement.appendChild(childElement)
+
+
+    promiseDuplicateCheck.then(data => {
+      console.log(data.action);
+
+      if (content.folders.length > 0) {
+        const folderPromises = content.folders.map(folder => {
+          const formData = new FormData()
+          formData.append('name', folder.name)
+          formData.append('id', folder.id)
+          return new Promise(async function(resolve, reject) {
+            fetch(`/storage/${folder.parentId}/register/folder`, {
+              method: 'POST',
+              body: formData
+            }).then(response => {
+              return response.json()
+            }).then(data => {
+              resolve(data)
+            })
           })
         })
-      }, function(error) {
-        reject(error)
-      })
+        Promise.all(folderPromises).then(result => console.log(result))
+      }
+      if (content.fileObjects.length > 0) {
+        const filePromises = content.fileObjects.map(fileObj => {
+          const formData = new FormData()
+          formData.append('file', fileObj.file)
+
+          return new Promise(async function(resolve, reject) {
+            console.log('hola promesa');
+
+            fetch(`/storage/${fileObj.parentId}/upload/file`, {
+              method: 'POST',
+              body: formData
+            }).then(response => {
+              return response.json()
+            }).then(data => {
+              if (data.success) {
+                if (isDirectory) {
+                  counterUpload += 1
+                  childElement.querySelector('span.info').innerText = `Uploaded ${counterUpload} of ${content.fileObjects.length}`
+                } else {
+                  childElement.querySelector('span.info').innerText = `Uploaded`
+                }
+                console.log(counterUpload);
+                resolve(data)
+              }
+            })
+          })
+        })
+        Promise.all(filePromises).then(result => console.log(result))
+      }
     })
 
-    let formDataUpload = new FormData()
-    let formDataCheck = new FormData()
-
-    let files = await Promise.all(filesPromises)
-    // Check if files and folders already exist at the folder we are uploading
-    let rootItems = []
-
-    for (const file of files) {
-      formDataUpload.append('files', file.file)
-      formDataUpload.append('detailsFiles', JSON.stringify(file.details))
-      if (file.details.isDirectChild) {
-        formDataCheck.append('rootFiles', JSON.stringify(file.details.name))
+  }
+</script>
+<script>
+  async function readEntryContents(entry, parentId) {
+    if (!entry.isDirectory) {
+      let file = await new Promise(function(resolve, reject) {
+        entry.file(function(file) {
+          resolve(file)
+        })
+      })
+      return {
+        fileObjects: [{
+          file,
+          parentId
+        }],
+        folders: []
       }
-    }
-
-    for (const folder of flatArrayFolders) {
-      formDataUpload.append('folders', JSON.stringify(folder))
-      if (folder.isDirectChild) {
-        formDataCheck.append('rootFolders', folder.name)
+    } else {
+      const {
+        fileObjects,
+        folders
+      } = await new Promise(function(resolve, reject) {
+        let fileObjects = []
+        let folderId = crypto.randomUUID()
+        let folders = [{
+          name: entry.name,
+          id: folderId,
+          parentId
+        }]
+        entry.createReader().readEntries(async function(entries) {
+          for (const entry of entries) {
+            let result = await readEntryContents(entry, folderId)
+            fileObjects = [...fileObjects, ...result.fileObjects]
+            folders = [...folders, ...result.folders]
+          }
+          resolve({
+            fileObjects,
+            folders
+          })
+        })
+      })
+      return {
+        fileObjects,
+        folders
       }
-    }
-
-    return {
-      formDataUpload,
-      formDataCheck
     }
   }
 </script>
+<script>
+  window.addEventListener('duplicatecheck', (e) => {
+    console.log('windowww');
 
+  }, {
+    capture: true
+  })
+</script>
+<script>
+  document.body.addEventListener('duplicatecheck', (e) => {
+    console.log('duplicate body');
+
+  })
+</script>
 <script>
   async function fetchUpload(formData, folderId, action = null) {
     try {
@@ -117,7 +249,6 @@
     } catch (err) {
       alert(err)
     }
-
   }
 </script>
 <script>
@@ -134,63 +265,4 @@
       alert(err)
     }
   }
-</script>
-<script>
-  async function traverseEntry(entry, parentId, isDirectChild = true) {
-
-    if (!entry.isDirectory) {
-      return {
-        fileEntries: [{
-          entry,
-          details: {
-            id: crypto.randomUUID(),
-            name: entry.name,
-            parentId,
-            isDirectChild
-          }
-        }],
-        folders: []
-      }
-    } else {
-      const {
-        fileEntries,
-        folders
-      } = await new Promise(function(resolve, reject) {
-        let fileEntries = []
-        let folderId = crypto.randomUUID()
-        let folders = [{
-          name: entry.name,
-          id: folderId,
-          parentId,
-          isDirectChild
-        }]
-
-        entry.createReader().readEntries(async function(entries) {
-          for (const entry of entries) {
-            let result = await traverseEntry(entry, folderId, isDirectChild = false)
-            fileEntries = [...fileEntries, ...result.fileEntries]
-            folders = [...folders, ...result.folders]
-          }
-
-          resolve({
-            fileEntries,
-            folders
-          })
-        })
-      })
-      return {
-        fileEntries,
-        folders
-      }
-    }
-  }
-</script>
-<script>
-  document.querySelectorAll('div.content.folder').forEach(folder => {
-    folder.addEventListener('click', (e) => {
-      //e.preventDefault()
-      //e.stopPropagation()
-
-    })
-  })
 </script>

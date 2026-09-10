@@ -17,18 +17,11 @@ storageRouter.get(
   storageControllers.getFolder,
 );
 storageRouter.post(
-  "/:folderId/upload/files",
+  "/:folderId/upload/file",
   isAuthenticated,
   isOwner,
-  upload.array("file"),
-  storageControllers.uploadFiles,
-);
-storageRouter.post(
-  "/:folderId/upload/multiple",
-  isAuthenticated,
-  isOwner,
-  upload.array("files"),
-  storageControllers.uploadMultiple,
+  upload.single("file"),
+  storageControllers.uploadFile,
 );
 
 storageRouter.post(
@@ -36,6 +29,14 @@ storageRouter.post(
   isAuthenticated,
   isOwner,
   storageControllers.createFolder,
+);
+
+storageRouter.post(
+  "/:folderId/register/folder",
+  isAuthenticated,
+  isOwner,
+  upload.none(),
+  storageControllers.registerFolder,
 );
 
 storageRouter.post(

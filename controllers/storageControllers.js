@@ -34,30 +34,7 @@ async function getFolder(req, res, next) {
   }
 }
 
-async function uploadFiles(req, res, next) {
-  try {
-    const { file, user } = req;
-    const { folderId } = req.params;
-    const newFile = await prisma.file.create({
-      data: {
-        name: file.originalname,
-        mimetype: file.mimetype,
-        folderId: folderId,
-      },
-    });
-    await supabase.storage
-      .from(user.id)
-      .upload(path.join(newFile.id, file.originalname), file.buffer, {
-        contentType: file.mimetype,
-      });
-    req.flash("success", "File uploaded succesfully");
-    res.redirect(`/storage/${folderId}/`);
-  } catch (err) {
-    next(err);
-  }
-}
-
-async function uploadMultiple(req, res, next) {
+async function uploadFile(req, res, next) {
   //TODO: Consider if appending folders in
   // formData instead of JSON.parse(req.body.folders)
   //here
@@ -85,15 +62,27 @@ async function uploadMultiple(req, res, next) {
   // REPEAT SAME LOGIC  in uploadFiles with already existing name
   // on uploadFile endpoint
 
+  //TODO: Apply the above logic for when uploading a file with same name
   try {
-    const { files } = req;
-    let { detailsFiles, folders, action } = req.body;
+    const { file, user } = req;
+    const { folderId } = req.params;
+    const { id } = req.body;
 
-    console.log(files);
-    console.log(folders);
-    console.log(action);
-
-    res.json({ prop1: "hola" });
+    let data = {
+      name: file.originalname,
+      mimetype: file.mimetype,
+      folderId: folderId,
+    };
+    const newFile = await prisma.file.create({
+      data,
+    });
+    await supabase.storage
+      .from(user.id)
+      .upload(path.join(newFile.id, file.originalname), file.buffer, {
+        contentType: file.mimetype,
+      });
+    req.flash("success", "File uploaded succesfully");
+    res.json({ success: true });
   } catch (err) {
     next(err);
   }
@@ -133,22 +122,20 @@ async function checkExisting(req, res, next) {
 }
 
 async function registerFolder(req, res, next) {
-  try {
-    const { user } = req;
-    const { name } = req.body;
-    const { folderId } = req.params;
+  const { user } = req;
+  const { id, name } = req.body;
+  const { folderId } = req.params;
 
-    await prisma.folder.create({
-      data: { name, parentFolderId: folderId, ownerId: user.id },
-    });
-  } catch (err) {
-    throw err;
-  }
+  await prisma.folder.create({
+    data: { id, name, parentFolderId: folderId, ownerId: user.id },
+  });
+  res.json({ success: true });
 }
 
 async function createFolder(req, res, next) {
   try {
     await registerFolder(req, res, next);
+    req.flash("success", "Created new folder");
     res.redirect(`/storage/${folderId}/`);
   } catch (err) {
     next(err);
@@ -158,8 +145,8 @@ async function createFolder(req, res, next) {
 module.exports = {
   getStorageIndex,
   getFolder,
-  uploadFiles,
-  uploadMultiple,
+  uploadFile,
   createFolder,
+  registerFolder,
   checkExisting,
 };

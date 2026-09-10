@@ -26,7 +26,7 @@
     <% } %>
 
     <% if(locals.currentUser && locals.folder){ %>
-    <div id="<%= folder.id %>" class="drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)">
+    <div id="<%= folder.id %>" class="main drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)">
       <% if(locals.contents){ %>
       <% contents.forEach(content=>{ %>
       <%- include('partials/content', {content}) %>

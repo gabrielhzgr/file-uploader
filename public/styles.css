@@ -163,6 +163,11 @@ label:has(input:required) > h2::after {
   color: darkred;
 }
 
+.progress {
+  overflow-y: scroll;
+  background-color: var(grey);
+}
+
 span.close {
   text-shadow: 1px -1px grey;
   position: absolute;
@@ -218,6 +223,15 @@ aside .button {
   cursor: pointer;
 }
 
+.content.loading {
+  position: relative;
+}
+
+.content.loading span.info {
+  position: absolute;
+  right: 0;
+}
+
 div.modal.active {
   height: 100vh;
   width: 100vw;
@@ -236,7 +250,7 @@ div.modal {
   z-index: 1;
 }
 
-div.modal.actions > div.info {
+div.modal.duplicate > div.info {
   box-shadow: var(--box-shadow);
   background-color: var(--bg-color);
   color: var(--second-color);
@@ -245,7 +259,7 @@ div.modal.actions > div.info {
   border-radius: 10px;
 }
 
-div.modal.actions > div.info > div.buttons {
+div.modal.duplicate > div.info > div.buttons {
   width: 100%;
   display: flex;
   justify-content: center;
