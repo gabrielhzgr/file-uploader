@@ -66,7 +66,7 @@ a {
   color: var(--second-color);
 }
 
-.form {
+form {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -151,6 +151,7 @@ label:has(input:required) > h2::after {
   justify-content: center;
   align-items: center;
   box-shadow: inset 0px 0px 2px 1px;
+  position: relative;
 }
 
 .success {

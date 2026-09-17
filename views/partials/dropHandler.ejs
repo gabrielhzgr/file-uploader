@@ -8,170 +8,300 @@
         traverseDropItems(e)
       }
     } catch (err) {
-      alert(err)
+      console.log(err)
     }
   }
 </script>
-
 
 <script>
   async function traverseDropItems(e) {
-    e.currentTarget.classList.remove('active')
-    const folderId = e.currentTarget.id
+    try {
+      e.currentTarget.classList.remove('active')
+      const folderId = e.currentTarget.id
 
-    let filesPromises = []
-    let formDuplicateCheck = new FormData()
-    let rootFolders = []
-    let rootFiles = []
-    let promiseResolve, promiseReject
+      let filesPromises = []
 
+      let rootFolders = []
+      let rootFiles = []
+      let promiseResolve, promiseReject
 
-    const promiseDuplicateCheck = new Promise((resolve, reject) => {
-      promiseResolve = resolve
-      promiseReject = reject
-    })
+      const promise = new Promise((resolve, reject) => {
+        promiseResolve = resolve
+        promiseReject = reject
+      })
 
-    for (const item of e.dataTransfer.items) {
-      let entry = item.webkitGetAsEntry()
-      if (entry.isDirectory) {
-        //rootFolders.push(entry.name)
-        formDuplicateCheck.append('folders', entry.name)
-      } else {
-        //rootFiles.push(entry.name)
-        formDuplicateCheck.append('files', entry.name)
+      const checkedDuplicates = {
+        promise,
+        found: false,
+        resolve: promiseResolve,
+        reject: promiseReject
       }
 
-      new Promise(function(resolve, reject) {
-          readEntryContents(entry, folderId)
-            // Array like [{fileObjects: Array({File, parentId}), folders: Array({})},
-            // {fileObjects: Array({File, parentId}), folders: Array(File)}]
-            //const results = await Promise.all(filesPromises)
-            .then(response => resolve(response))
-        })
-        .then(content => uploadItem(folderId, entry.isDirectory, entry.name, content, promiseDuplicateCheck))
+      for (const item of e.dataTransfer.items) {
+        let entry = item.webkitGetAsEntry()
+
+        new Promise(function(resolve, reject) {
+            readEntryContents(entry, folderId)
+              // Array like [{fileObjects: Array({File, parentId}), folders: Array({})},
+              // {fileObjects: Array({File, parentId}), folders: Array(File)}]
+              //const results = await Promise.all(filesPromises)
+              .then(response => resolve(response))
+              .catch(err => console.log(err))
+          })
+          .then(content => {
+
+            uploadItem(
+              entry.isDirectory,
+              folderId,
+              entry.name,
+              entry.isDirectory ? content : content.fileObjects[0].file,
+              checkedDuplicates
+            )
+          })
+          .catch(err => {
+            throw err
+          })
+      }
+    } catch (err) {
+      throw err
     }
-
-
-    fetchDuplicateCheck(formDuplicateCheck, folderId).then(data => {
-
-      if (data.duplicating) {
-        const modalDuplicate = document.querySelector('.modal.duplicate').classList.add('active')
-        const btnReplace = modalDuplicate.querySelector('button.rename')
-        const btnRename = modalDuplicate.querySelector('button.rename')
-
-        btnReplace.addEventListener('click', (e) => {
-          const data = {
-            action: 'replace'
-          }
-          promiseResolve(data)
-        })
-
-        btnRename.addEventListener('click', (e) => {
-          const data = {
-            action: 'rename'
-          }
-          promiseResolve(data)
-        })
-      } else {
-        const data = {
-          action: null
-        }
-        promiseResolve(data)
-      }
-    }).catch(err => console.log(err))
-
-
   }
 </script>
+
+
 <script>
-  function uploadItem(parentId, isDirectory, name, content, promiseDuplicateCheck) {
-    console.log('upload item');
+  function uploadItem(isDirectory, parentId, name, content, checkedDuplicates) {
+    try {
+      let parentElement = document.getElementById(parentId)
+      const modalDuplicate = document.querySelector('#modal-duplicate-actions')
 
-    let parentElement = document.getElementById(parentId)
-
-    if (!parentElement.classList.contains('main')) {
-      parentElement = document.querySelector('.flash.progress')
-      if (!parentElement) {
-        parentElement = Object.assign(document.createElement('div'), {
-          className: 'flash progress'
-        })
-        document.body.prepend(parentElement)
-      }
-    }
-    let counterUpload = 0
-    let files
-    let file = isDirectory ? null : content.fileObjects[0].file
-    let childElement = document.createElement('div')
-    childElement.innerHTML = `
-    <div class="content loading">
-    <span class="material-symbols-outlined">
-      ${isDirectory ? 'folder': 
-      file.type.startsWith('image') ? 'image' :
-      file.type.startsWith('video') ? 'video' : 'article'}
-    </span>
-    <span>
-      ${name}
-    </span>
-    <span class="info">
-    ${isDirectory ? `Uploaded ${counterUpload} of ${content.fileObjects.length}` : 'Uploading'} 
-    </span>
-  </div>`
-    childElement = childElement.firstElementChild
-    parentElement.appendChild(childElement)
-
-
-    promiseDuplicateCheck.then(data => {
-      console.log(data.action);
-
-      if (content.folders.length > 0) {
-        const folderPromises = content.folders.map(folder => {
-          const formData = new FormData()
-          formData.append('name', folder.name)
-          formData.append('id', folder.id)
-          return new Promise(async function(resolve, reject) {
-            fetch(`/storage/${folder.parentId}/register/folder`, {
-              method: 'POST',
-              body: formData
-            }).then(response => {
-              return response.json()
-            }).then(data => {
-              resolve(data)
-            })
+      if (!parentElement.classList.contains('main')) {
+        parentElement = document.querySelector('.flash.progress')
+        if (!parentElement) {
+          parentElement = Object.assign(document.createElement('div'), {
+            className: 'flash progress'
           })
-        })
-        Promise.all(folderPromises).then(result => console.log(result))
+          document.body.prepend(parentElement)
+        }
       }
-      if (content.fileObjects.length > 0) {
-        const filePromises = content.fileObjects.map(fileObj => {
-          const formData = new FormData()
-          formData.append('file', fileObj.file)
+      let childElement = document.createElement('div')
+      childElement.innerHTML = `
+      <div class="content loading">
+      <span class="material-symbols-outlined">
+        ${content.type.startsWith('image') ? 'image' : content.type.startsWith('video') ? 'theaters' : 'article'} 
+      </span>
+      <span class="name">
+        ${name}
+      </span>
+      <span class="info">
+      ${isDirectory? `Uploaded 0 of ${content.fileObjects.length}`: 'Uploading'}
+      </span>
+      </div>`
 
-          return new Promise(async function(resolve, reject) {
-            console.log('hola promesa');
+      childElement = childElement.firstElementChild
+      parentElement.append(childElement)
 
-            fetch(`/storage/${fileObj.parentId}/upload/file`, {
-              method: 'POST',
-              body: formData
-            }).then(response => {
-              return response.json()
-            }).then(data => {
-              if (data.success) {
-                if (isDirectory) {
-                  counterUpload += 1
-                  childElement.querySelector('span.info').innerText = `Uploaded ${counterUpload} of ${content.fileObjects.length}`
-                } else {
-                  childElement.querySelector('span.info').innerText = `Uploaded`
+      if (isDirectory) {
+        uploadFolder(parentId, name, content, checkedDuplicates)
+      } else {
+        uploadFile(parentId, name, content, checkedDuplicates)
+      }
+
+      function fetch(url, formData) {
+        return fetch(url, {
+          method: 'POST',
+          body: formData
+        })
+      }
+
+      function fetchFileWithAction(url, formData, action) {
+        formData.append('action', action)
+        fetch(url, formData).then(response => {
+          if (response.status == 200) {
+            return response.json()
+          } else {
+            throw new Error('Error uploading')
+          }
+        }).then(data => {
+          childElement.setAttribute('id', data.id)
+          childElement.querySelector('.info').innerText = 'Uploaded'
+          childElement.querySelector('.name').innerText = data.name
+        }).catch(err => {
+          throw err;
+        })
+      }
+
+      function uploadFolder(parentId, name, content, checkedDuplicates) {
+        //TODO: Test upload folder
+        try {
+          let uploadedCount = 0
+          const totalCount = content.fileObjects.length
+          let {
+            folders,
+            fileObjects
+          } = content
+
+
+          if (!checkedDuplicates.found) {
+            const {
+              name,
+              parentId
+            } = folders[0]
+            const url = `/storage/${parentId}/create/folder`
+            const formData = new FormData()
+            formData.append('name', name)
+            fetch(url, formData).then(response => {
+              if (response.status == 200) {
+                folders.splice(0, 1)
+                return response.json()
+              } else {
+                if (!checkedDuplicates.found) {
+                  checkedDuplicates.found = true
+                  openDuplicateModal(checkedDuplicates.resolve)
                 }
-                console.log(counterUpload);
-                resolve(data)
+                checkedDuplicates.promise.then(data => {
+                  Promise.all(folders.map(folder => {
+                    const {
+                      name,
+                      parentId,
+                      id
+                    } = folder
+                    formData.append('name', name)
+                    formData.append('parentId', parentId)
+                    formData.append('id', id)
+
+                    const url = `/storage/${parentId}/create/folder`
+                    return fetch(url, formData)
+                  }))
+
+                  Promise.all(fileObjects.map(fileObj => {
+                    const {
+                      file,
+                      parentId
+                    } = fileObj
+                    const formData = new FormData()
+                    formData.append('file', file)
+                    return new Promise(function(resolve, reject) {
+                      fetch(url, formData).then(response => {
+                        childElement.querySelector('.info').innerText = `
+                        Uploaded ${++uploadedCount} of ${totalCount}
+                        `
+                        resolve(response)
+                      })
+                    })
+
+                  }))
+                }).catch(err => {
+                  throw err
+                })
               }
+            }).then(data => {
+              Promise.all(folders.map(folder => {
+                const {
+                  name,
+                  parentId,
+                  id
+                } = folder
+                formData.append('name', name)
+                formData.append('parentId', parentId)
+                formData.append('id', id)
+
+                const url = `/storage/${parentId}/create/folder`
+                return fetch(url, formData)
+              }))
+
+              Promise.all(fileObjects.map(fileObj => {
+                const {
+                  file,
+                  parentId
+                } = fileObj
+                const formData = new FormData()
+                formData.append('file', file)
+                return new Promise(function(resolve, reject) {
+                  fetch(url, formData).then(response => {
+                    childElement.querySelector('.info').innerText = `
+                        Uploaded ${++uploadedCount} of ${totalCount}
+                        `
+                    resolve(response)
+                  })
+                })
+              }))
+            }).catch(err => {
+              throw err
             })
-          })
-        })
-        Promise.all(filePromises).then(result => console.log(result))
+          }
+        } catch (err) {
+          throw err;
+        }
       }
+
+      function uploadFile(parentId, name, content, checkedDuplicates) {
+        try {
+          const url = `/storage/${parentId}/upload/file`
+          const formData = new FormData()
+          formData.append('file', content)
+
+          if (checkedDuplicates.found) {
+            checkedDuplicates.promise.then(data => {
+              fetchFileWithAction(url, formData, data.action)
+            }).catch(err => {
+              throw err
+            })
+          } else {
+            fetch(url, formData).then(response => {
+              if (response.status == 200) {
+                return response.json()
+              } else {
+                if (!checkedDuplicates.found) {
+                  checkedDuplicates.found = true
+                  openDuplicateModal(checkedDuplicates.resolve)
+                }
+                checkedDuplicates.promise.then(data => {
+                  fetchFileWithAction(url, formData, data.action)
+                }).catch(err => {
+                  throw err
+                })
+              }
+            }).then(data => {
+              childElement.setAttribute('id', data.id)
+              childElement.querySelector('.info').innerText = 'Uploaded'
+            }).catch(err => {
+              throw err
+            })
+          }
+        } catch (err) {
+          throw err;
+        }
+      }
+
+    } catch (err) {
+      throw err;
+    }
+  }
+</script>
+</script>
+<script>
+  function openDuplicateModal(resolve) {
+    const modalDuplicate = document.getElementById('modal-duplicate-actions')
+    modalDuplicate.classList.add('active')
+    const btnReplace = modalDuplicate.querySelector('button.replace')
+    const btnRename = modalDuplicate.querySelector('button.rename')
+
+    btnReplace.addEventListener('click', (e) => {
+      const data = {
+        action: 'replace'
+      }
+      modalDuplicate.classList.remove('active')
+      resolve(data)
     })
 
+    btnRename.addEventListener('click', (e) => {
+      const data = {
+        action: 'rename'
+      }
+      modalDuplicate.classList.remove('active')
+      resolve(data)
+    })
   }
 </script>
 <script>
@@ -217,52 +347,6 @@
         fileObjects,
         folders
       }
-    }
-  }
-</script>
-<script>
-  window.addEventListener('duplicatecheck', (e) => {
-    console.log('windowww');
-
-  }, {
-    capture: true
-  })
-</script>
-<script>
-  document.body.addEventListener('duplicatecheck', (e) => {
-    console.log('duplicate body');
-
-  })
-</script>
-<script>
-  async function fetchUpload(formData, folderId, action = null) {
-    try {
-      if (action) {
-        formData.append('action', action)
-      }
-      const response = await fetch(`/storage/${folderId}/upload/multiple`, {
-        method: "POST",
-        body: formData //files, detailsFiles, folders, action
-      })
-      const data = await response.json()
-      return data
-    } catch (err) {
-      alert(err)
-    }
-  }
-</script>
-<script>
-  async function fetchDuplicateCheck(formData, folderId) {
-    try {
-      const response = await fetch(`/storage/${folderId}/check/existing`, {
-        method: "POST",
-        body: formData
-      })
-      const data = await response.json()
-      return data
-
-    } catch (err) {
-      alert(err)
     }
   }
 </script>

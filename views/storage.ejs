@@ -7,21 +7,15 @@
   <main>
     <% if(locals.currentUser && locals.folder) {%>
     <aside>
-      <form id="form-folder" action="/storage/<%= folder.id %>/upload/folder" enctype="multipart/form-data" method="POST">
-        <input type="file" onchange="testing(event)" name="folder" id="input-folder" style="display: none;" webkitdirectory multiple>
-        <label class="button" for="input-folder">Upload folder</label>
-      </form>
-      <form id="form-file" action="/storage/<%= folder.id %>/upload/files" enctype="multipart/form-data" method="POST">
-        <input type="file" onchange="this.parentElement.submit()" name="file" id="input-file" style="display: none;" multiple>
-        <label class="button" for="input-file">Upload file</label>
-      </form>
-      <label class="button" id="new-folder" onclick="document.querySelector('#modal-folder').classList.add('active')">New Folder</label>
+      <button class="button">Upload folder</button>
+      <button class="button">Upload file</button>
+      <button class="button" onclick="const modal = document.getElementById('modal-folder'); modal.classList.add('active');modal.focus()">New Folder</button>
     </aside>
     <% } else{ %>
     <aside>
-      <label class="button" id="upload-folder-btn" title="Log in to upload a foler" disabled>Upload folder</label>
-      <label class="button" id="upload-file-btn" title="Log in to upload a file" disabled>Upload file</label>
-      <label class="button" id="new-folder" title="Log in to create a Folder" disabled>New Folder</label>
+      <button class="button" id="upload-folder-btn" title="Log in to upload a foler" disabled>Upload folder</label>
+        <button class="button" id="upload-file-btn" title="Log in to upload a file" disabled>Upload file</label>
+          <button class="button" id="new-folder" title="Log in to create a Folder" disabled>New Folder</label>
     </aside>
     <% } %>
 
@@ -45,6 +39,7 @@
   <%- include('partials/dragOverHandler') %>
   <%- include('partials/dropHandler') %>
   <%- include('partials/dragLeaveHandler') %>
+  <%- include('partials/closeModal') %>
   <% } %>
 
 

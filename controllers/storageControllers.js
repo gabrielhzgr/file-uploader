@@ -2,6 +2,7 @@ const { log } = require("node:console");
 const prisma = require("../lib/prisma");
 const supabase = require("../lib/supabase");
 const path = require("node:path");
+const { start } = require("node:repl");
 //const getHierarchy = require("../lib/getHierarchy.js");
 
 async function getStorageIndex(req, res, next) {
@@ -11,9 +12,6 @@ async function getStorageIndex(req, res, next) {
   const rootFolder = await prisma.folder.findFirst({
     where: { parentFolderId: null, ownerId: req.user.id },
   });
-  //req.folder = rootFolder
-  //req.url+=rootFolder.id
-  //next()
   res.redirect(`/storage/${rootFolder.id}`);
 }
 
@@ -34,119 +32,123 @@ async function getFolder(req, res, next) {
   }
 }
 
+async function createFolder(req, res, next) {
+  try {
+    const { user } = req;
+    const { id, name, action } = req.body;
+    const { folderId } = req.params;
+    const data = { id, name, parentFolderId: folderId, ownerId: user.id };
+    if (id) {
+      data.id = id;
+    }
+
+    const nameExists = await prisma.folder.findFirst({
+      where: { id, name },
+    });
+
+    if (!nameExists) {
+      const newFolder = await prisma.folder.create({ data });
+      return res.json(newFolder);
+    } else if (nameExists && !action) {
+      return res.status(300).send();
+    } else if (nameExists && action == "rename") {
+      let { altIndexesMissing, lastAltIndex } = altName(
+        nameExists.altIndexesMissing,
+        nameExists.lastAltIndex,
+      );
+      nameExists.altIndexesMissing = altIndexesMissing;
+      nameExists.lastAltIndex = lastAltIndex;
+
+      let nameWithSuffix = `${nameExists.name} (${nameExists.lastAltIndex})`;
+      data.name = nameWithSuffix;
+
+      const newFolder = await prisma.folder.create({ data });
+      const updatedFolder = await prisma.folder.update({
+        where: { id: nameExists.id },
+        data: nameExists,
+      });
+      return res.json(newFolder);
+    } else if (nameExists && action == "replace") {
+      //TODO: Action replace
+    }
+  } catch (err) {
+    next(err);
+  }
+}
+
+function altName(altIndexesMissing = [], lastAltIndex) {
+  if (altIndexesMissing.length == 0 && !lastAltIndex) {
+    lastAltIndex = 1;
+  } else if (altIndexesMissing.length == 0 && lastAltIndex) {
+    lastAltIndex += 1;
+  } else if (altIndexesMissing.length > 0 && !lastAltIndex) {
+    lastAltIndex = altIndexesMissing.shift();
+  }
+
+  return { altIndexesMissing, lastAltIndex };
+}
+
 async function uploadFile(req, res, next) {
-  //TODO: Consider if appending folders in
-  // formData instead of JSON.parse(req.body.folders)
-  //here
-
-  //TODO: Write transaction to insert folders in db
-
-  //TODO: Write transaction to insert files in db
-
-  //TODO: If name of folder already exists send a popup to user
-  //to select if keep or replace folder
-
-  //TODO: Write logic to check if directory already exists in
-  //:folderId, example what if user uploaded folder named Webcam
-  //to folder abc-123 but that folder already had a folder named Webcam
-  //IF missing alt indexes IS empty and last alt index IS empty too
-  //update last alt index to 1 then insert the folder as
-  //"name of original folder (1)"
-  //IF missing alt indexes IS NOT empty insert the folder as
-  //"name of original folder (lowest missing alt index)""
-  //then delete it from missing alt indexes
-  //IF missing alt indexes IS EMPTY and last alt index IS NOT empty
-  //insert the folder as "name of original folder (last_alt_index + 1)"
-  //and update last alt index by incrementing it by 1
-
-  // REPEAT SAME LOGIC  in uploadFiles with already existing name
-  // on uploadFile endpoint
-
-  //TODO: Apply the above logic for when uploading a file with same name
   try {
     const { file, user } = req;
+    const { action } = req.body;
     const { folderId } = req.params;
-    const { id } = req.body;
 
     let data = {
       name: file.originalname,
       mimetype: file.mimetype,
       folderId: folderId,
     };
-    const newFile = await prisma.file.create({
-      data,
+
+    const nameExists = await prisma.file.findFirst({
+      where: { folderId, name: file.originalname },
     });
-    await supabase.storage
-      .from(user.id)
-      .upload(path.join(newFile.id, file.originalname), file.buffer, {
-        contentType: file.mimetype,
+
+    if (!nameExists) {
+      const newFile = await prisma.file.create({ data });
+      await supabase.storage
+        .from(user.id)
+        .upload(path.join(newFile.id, file.originalname), file.buffer, {
+          contentType: file.mimetype,
+        });
+      return res.json(newFile);
+    } else if (nameExists && !action) {
+      return res.status(300).send();
+    } else if (nameExists && action == "rename") {
+      let { altIndexesMissing, lastAltIndex } = altName(
+        nameExists.altIndexesMissing,
+        nameExists.lastAltIndex,
+      );
+      nameExists.altIndexesMissing = altIndexesMissing;
+      nameExists.lastAltIndex = lastAltIndex;
+
+      let nameWithSuffix = `${nameExists.name} (${nameExists.lastAltIndex})`;
+      data.name = nameWithSuffix;
+
+      const newFile = await prisma.file.create({ data });
+      const updatedFile = await prisma.file.update({
+        where: { id: nameExists.id },
+        data: nameExists,
       });
-    req.flash("success", "File uploaded succesfully");
-    res.json({ success: true });
+      await supabase.storage
+        .from(user.id)
+        .upload(path.join(newFile.id, file.originalname), file.buffer, {
+          contentType: file.mimetype,
+        });
+      return res.json(newFile);
+    } else if (nameExists && action == "replace") {
+      //TODO: ACTION REPLACE
+    }
   } catch (err) {
     next(err);
   }
 }
 
-async function checkExisting(req, res, next) {
-  let { rootFiles, rootFolders } = req.body;
-  const { folderId } = req.params;
-  if (rootFiles) {
-    for (const rootFile of rootFiles) {
-      if (!Array.isArray(rootFiles)) {
-        rootFolders = [rootFiles];
-      }
-      const file = await prisma.file.findFirst({
-        where: { folderId: folderId, name: rootFile },
-      });
-      if (file) {
-        return res.json({ duplicating: true });
-      }
-    }
-  }
-  if (rootFolders) {
-    if (!Array.isArray(rootFolders)) {
-      rootFolders = [rootFolders];
-    }
-    for (const rootFolder of rootFolders) {
-      const folder = await prisma.folder.findFirst({
-        where: { parentFolderId: folderId, name: rootFolder },
-      });
-      if (folder) {
-        return res.json({ duplicating: true });
-      }
-    }
-  }
-
-  res.json({ duplicating: false });
-}
-
-async function registerFolder(req, res, next) {
-  const { user } = req;
-  const { id, name } = req.body;
-  const { folderId } = req.params;
-
-  await prisma.folder.create({
-    data: { id, name, parentFolderId: folderId, ownerId: user.id },
-  });
-  res.json({ success: true });
-}
-
-async function createFolder(req, res, next) {
-  try {
-    await registerFolder(req, res, next);
-    req.flash("success", "Created new folder");
-    res.redirect(`/storage/${folderId}/`);
-  } catch (err) {
-    next(err);
-  }
-}
+//TODO: delete folder, delete file
 
 module.exports = {
   getStorageIndex,
   getFolder,
   uploadFile,
   createFolder,
-  registerFolder,
-  checkExisting,
 };

@@ -28,23 +28,8 @@ storageRouter.post(
   "/:folderId/create/folder",
   isAuthenticated,
   isOwner,
-  storageControllers.createFolder,
-);
-
-storageRouter.post(
-  "/:folderId/register/folder",
-  isAuthenticated,
-  isOwner,
   upload.none(),
-  storageControllers.registerFolder,
-);
-
-storageRouter.post(
-  "/:folderId/check/existing",
-  isAuthenticated,
-  isOwner,
-  upload.array("rootItems"),
-  storageControllers.checkExisting,
+  storageControllers.createFolder,
 );
 
 module.exports = storageRouter;

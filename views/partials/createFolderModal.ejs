@@ -1,13 +1,122 @@
-<div id="modal-folder" class="modal modal-folder">
-  <span aria-label="close" class="close" onclick="this.parentElement.classList.remove('active')">X</span>
-  <form class="form" action="/storage/<%= folder.id %>/create/folder" method="POST">
+<div id="modal-folder" class="modal modal-folder" tabindex="0" onkeydown="closeModal.call(this, event)">
+  <span aria-label="close" class="close" onclick="closeModal.call(this.parentElement, event)">X</span>
+  <form onsubmit="createFolder(event)">
     <h1>Create New Folder</h1>
     <div class="fields">
       <label for="name">
         <h2>Name</h2>
-        <input type="text" id="name" name="name" required>
+        <input type="text" name="name" required>
       </label>
     </div>
-    <button class="button">Submit</button>
+    <button type="submit" class="button">Submit</button>
   </form>
 </div>
+
+<script>
+  async function createFolder(e) {
+
+    try {
+      const dropZone = document.getElementById("<%= folder.id %>")
+      const modalFolder = document.querySelector('#modal-folder')
+      const modalDuplicate = document.querySelector('#modal-duplicate-actions')
+      const name = e.target.querySelector('input[name="name"]').value
+      const formData = new FormData()
+      formData.append('name', name)
+      e.preventDefault()
+
+      e.target.querySelectorAll('button, input').forEach(element => {
+        element.disabled = true
+      });
+
+      let flashSuccess = document.createElement('div')
+      flashSuccess.innerHTML = `<div class="flash success">
+        <p></p>
+        <span aria-label="close" class="close" onclick="this.parentElement.remove()">
+          X
+        </span>
+      </div>`
+
+      let newFolder = document.createElement('div')
+      newFolder.innerHTML = `<div class="content folder drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)" ">
+        <span class="material-symbols-outlined">
+          folder
+        </span>
+        <span class="info">
+        </span>
+      </div>`
+      newFolder = newFolder.firstElementChild
+
+      function success(data) {
+        document.body.prepend(flashSuccess)
+        newFolder.setAttribute('id', data.id)
+        newFolder.onclick = (e) => window.location = `/storage/${data.id}/`
+        newFolder.querySelector('.info').innerText = data.name
+        flashSuccess.querySelector('p').innerText = `Folder "${data.name}" created successfully`
+        dropZone.append(newFolder)
+        modalFolder.classList.remove('active')
+        modalDuplicate.classList.remove('active')
+        e.target.querySelectorAll('button, input').forEach(element => {
+          element.disabled = false
+        });
+      }
+
+      async function fetchFolder() {
+        try {
+          const response = await fetch("/storage/<%= folder.id %>/create/folder", {
+            method: 'POST',
+            body: formData
+          })
+          return response
+        } catch (err) {
+          throw err;
+        }
+      }
+
+      async function replace() {
+        try {
+          formData.append('action', 'replace')
+          const response = await fetchFolder()
+          if (response.status == 200) {
+            const data = await response.json()
+            success(data)
+          } else {
+            throw new Error('Error uploading')
+          }
+          this.removeEventListener('click', replace)
+        } catch (err) {
+          throw err
+        }
+      }
+
+      async function rename() {
+        try {
+          formData.append('action', 'rename')
+          const response = await fetchFolder()
+          if (response.status == 200) {
+            const data = await response.json()
+            success(data)
+          } else {
+            throw new Error('Error uploading')
+          }
+          this.removeEventListener('click', rename)
+        } catch (err) {
+          throw err
+        }
+      }
+
+      const response = await fetchFolder()
+      if (response.status == 200) {
+        const data = await response.json()
+        success(data)
+      } else {
+        modalDuplicate.classList.add('active')
+        const btnReplace = modalDuplicate.querySelector('.button.replace')
+        btnReplace.addEventListener('click', replace)
+        const btnRename = modalDuplicate.querySelector('.button.rename')
+        btnRename.addEventListener('click', rename)
+      }
+    } catch (err) {
+      alert(err)
+    }
+  }
+</script>
