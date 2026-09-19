@@ -32,4 +32,12 @@ storageRouter.post(
   storageControllers.createFolder,
 );
 
+storageRouter.post(
+  "/:folderId/create/folders",
+  isAuthenticated,
+  isOwner,
+  upload.none(),
+  storageControllers.createFolders,
+);
+
 module.exports = storageRouter;

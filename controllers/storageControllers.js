@@ -41,7 +41,6 @@ async function createFolder(req, res, next) {
     if (id) {
       data.id = id;
     }
-
     const nameExists = await prisma.folder.findFirst({
       where: { id, name },
     });
@@ -71,6 +70,23 @@ async function createFolder(req, res, next) {
     } else if (nameExists && action == "replace") {
       //TODO: Action replace
     }
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function createFolders(req, res, next) {
+  try {
+    let { folders } = req.body;
+    folders = JSON.parse(folders);
+
+    const { user } = req;
+    for (const folder of folders) {
+      const { id, name, parentId } = folder;
+      const data = { id, name, parentFolderId: parentId, ownerId: user.id };
+      const newFolder = await prisma.folder.create({ data });
+    }
+    res.json(folders);
   } catch (err) {
     next(err);
   }
@@ -151,4 +167,5 @@ module.exports = {
   getFolder,
   uploadFile,
   createFolder,
+  createFolders,
 };
