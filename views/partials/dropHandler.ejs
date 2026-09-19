@@ -39,17 +39,15 @@
 
       for (const item of e.dataTransfer.items) {
         let entry = item.webkitGetAsEntry()
-
-        new Promise(function(resolve, reject) {
-            readEntryContents(entry, folderId)
-              // Array like [{fileObjects: Array({File, parentId}), folders: Array({})},
-              // {fileObjects: Array({File, parentId}), folders: Array(File)}]
-              //const results = await Promise.all(filesPromises)
-              .then(response => resolve(response))
-              .catch(err => console.log(err))
+        new Promise(async function(resolve, reject) {
+            try {
+              const response = await readEntryContents(entry, folderId)
+              resolve(response)
+            } catch (err) {
+              throw nerr;
+            }
           })
           .then(content => {
-
             uploadItem(
               entry.isDirectory,
               folderId,
@@ -70,7 +68,7 @@
 
 
 <script>
-  function uploadItem(isDirectory, parentId, name, content, checkedDuplicates) {
+  async function uploadItem(isDirectory, parentId, name, content, checkedDuplicates) {
     try {
       let parentElement = document.getElementById(parentId)
       const modalDuplicate = document.querySelector('#modal-duplicate-actions')
@@ -102,9 +100,9 @@
       parentElement.append(childElement)
 
       if (isDirectory) {
-        uploadFolder(parentId, name, content, checkedDuplicates)
+        await uploadFolder(parentId, name, content, checkedDuplicates)
       } else {
-        uploadFile(parentId, name, content, checkedDuplicates)
+        await uploadFile(parentId, name, content, checkedDuplicates)
       }
 
       function myFetch(url, formData) {
@@ -114,62 +112,57 @@
         })
       }
 
-      function uploadFile(parentId, name, content, checkedDuplicates) {
+      async function uploadFile(parentId, name, content, checkedDuplicates) {
         try {
           const url = `/storage/${parentId}/upload/file`
           const formData = new FormData()
           formData.append('file', content)
 
           if (checkedDuplicates.found) {
-            checkedDuplicates.promise.then(data => {
-              formData.append('action', data.action)
-              myFetch(url, formData).then(data => {
+            const {
+              action
+            } = await checkedDuplicates.promise
+            formData.append('action', action)
+            const response = await myFetch(url, formData)
+            const newFile = await response.json()
+
+            childElement.setAttribute('id', newFile.id)
+            childElement.querySelector('.info').innerText = 'Uploaded'
+            childElement.querySelector('.name').innerText = newFile.name
+          } else {
+            const response = await myFetch(url, formData)
+            if (response.status == 200) {
+              const newFile = await response.json()
+              childElement.setAttribute('id', newFile.id)
+              childElement.querySelector('.info').innerText = 'Uploaded'
+            } else {
+              if (!checkedDuplicates.found) {
+                checkedDuplicates.found = true
+                openDuplicateModal(checkedDuplicates.resolve)
+              }
+              const {
+                action
+              } = await checkedDuplicates.promise
+              formData.append('action', action)
+              const response = await myFetch(url, formData)
+              if (response.status == 200) {
+                const newFolder = await response.json()
                 childElement.setAttribute('id', data.id)
                 childElement.querySelector('.info').innerText = 'Uploaded'
                 childElement.querySelector('.name').innerText = data.name
-              })
-            }).catch(err => {
-              throw err
-            })
-          } else {
-            myFetch(url, formData).then(response => {
-              if (response.status == 200) {
-                return response.json()
               } else {
-                if (!checkedDuplicates.found) {
-                  checkedDuplicates.found = true
-                  openDuplicateModal(checkedDuplicates.resolve)
-                }
-                checkedDuplicates.promise.then(data => {
-                  formData.append('action', data.action)
-                  myFetch(url, formData).then(data => {
-                    if (response.status == 200) {
-                      childElement.setAttribute('id', data.id)
-                      childElement.querySelector('.info').innerText = 'Uploaded'
-                      childElement.querySelector('.name').innerText = data.name
-                    } else {
-                      throw new Error("Error uploading file");
-                    }
-
-                  })
-                }).catch(err => {
-                  throw err
-                })
+                throw new Error("Error uploading file");
               }
-            }).then(data => {
-              childElement.setAttribute('id', data.id)
-              childElement.querySelector('.info').innerText = 'Uploaded'
-            }).catch(err => {
-              throw err
-            })
+            }
           }
         } catch (err) {
-          throw err;
+          throw err
         }
       }
 
       async function uploadFolder(parentId, name, content, checkedDuplicates) {
         try {
+          console.log(name);
           let uploadedCount = 0
           const totalCount = content.fileObjects.length
           let {
@@ -180,7 +173,7 @@
           const folderId = folders[0].id
 
           async function fetchFolder() {
-
+            console.log(`Uploading folder to ${name}`);
             const formData = new FormData()
             formData.append('folders', JSON.stringify(folders))
 
@@ -191,6 +184,8 @@
 
             let filesPromises = []
             for (const fileObj of fileObjects) {
+              console.log(`In loop of folder ${name}`);
+
               const {
                 file,
                 parentId
@@ -198,15 +193,23 @@
               const url = `/storage/${parentId}/upload/file`
               const formData = new FormData()
               formData.append('file', file)
-              filesPromises.push(new Promise(function(resolve, reject) {
-                myFetch(url, formData).then(response => {
+              filesPromises.push(new Promise(async function(resolve, reject) {
+                try {
+                  console.log(`fired file promise in ${name}`);
+
+                  const response = await myFetch(url, formData)
                   childElement.querySelector('.info').innerText = `
-                        Uploaded ${++uploadedCount} of ${totalCount}
-                        `
+                    Uploaded ${++uploadedCount} of ${totalCount}
+                  `
+
                   resolve()
-                })
+                } catch (err) {
+                  throw err
+                }
               }))
             }
+            console.log(`Finishe pushing promises to ${name}`);
+
             await Promise.all(filesPromises)
           }
 
@@ -220,47 +223,36 @@
             const formData = new FormData()
             formData.append('name', name)
             formData.append('id', id)
-            myFetch(url, formData).then(response => {
+            const response = await myFetch(url, formData)
+            if (response.status == 200) {
+              folders.splice(0, 1)
+              const newFolder = await response.json()
+              await fetchFolder()
+            } else {
+              if (!checkedDuplicates.found) {
+                checkedDuplicates.found = true
+                openDuplicateModal(checkedDuplicates.resolve)
+              }
+              const {
+                action
+              } = await checkedDuplicates.promise
+              formData.append('action', action)
+              const response = myFetch(url, formData)
               if (response.status == 200) {
                 folders.splice(0, 1)
-                return response.json()
-              } else {
-                if (!checkedDuplicates.found) {
-                  checkedDuplicates.found = true
-                  openDuplicateModal(checkedDuplicates.resolve)
+                if (action = 'rename') {
+                  childElement.querySelector('.name').innerText = data.name
                 }
-                checkedDuplicates.promise.then(data => {
-                  const action = data.action
-                  formData.append('action', action)
-                  myFetch(url, formData).then(response => {
-                    if (response.status == 200) {
-                      folders.splice(0, 1)
-                      return response.json()
-                    } else {
-                      throw new Error("Error uploading");
-                    }
-                  }).then(data => {
-                    if (action = 'rename') {
-                      childElement.querySelector('.name').innerText = data.name
-                    }
-                    fetchFolder()
-                  })
-
-                }).catch(err => {
-                  throw err
-                })
+                await fetchFolder()
+              } else {
+                throw new Error("Error uploading");
               }
-            }).then(data => {
-              fetchFolder()
-            }).catch(err => {
-              throw err
-            })
+            }
           }
-        } catch (error) {
-
+        } catch (err) {
+          throw err
         }
       }
-
     } catch (err) {
       throw err
     }
