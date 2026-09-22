@@ -8,7 +8,7 @@
   </span>
 </div>
 <% }else if(content.type.startsWith('image')){%>
-<div class="content file" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)" onclick="window.location.href = `/storage/<%= content.id %>/`">
+<div class="content file">
   <span class="material-symbols-outlined">
     image
   </span>
@@ -17,7 +17,7 @@
   </span>
 </div>
 <% }else if(content.type.startsWith('video')){ %>
-<div class="content file" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)" onclick="window.location.href = `/storage/<%= content.id %>/`">
+<div class="content file">
   <span class="material-symbols-outlined">
     theaters
   </span>
@@ -26,7 +26,7 @@
   </span>
 </div>
 <% }else{ %>
-<div class="content file" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)" onclick="window.location.href = `/storage/<%= content.id %>/`">
+<div class="content file" onclick="window.location.href = `/storage/<%= content.id %>/`">
   <span class="material-symbols-outlined">
     article
   </span>

@@ -77,8 +77,10 @@
           formData.append('action', 'replace')
           const response = await fetchFolder()
           if (response.status == 200) {
-            const data = await response.json()
-            success(data)
+            const {
+              newFolder
+            } = await response.json()
+            success(newFolder)
           } else {
             throw new Error('Error uploading')
           }
@@ -93,8 +95,10 @@
           formData.append('action', 'rename')
           const response = await fetchFolder()
           if (response.status == 200) {
-            const data = await response.json()
-            success(data)
+            const {
+              newFolder
+            } = await response.json()
+            success(newFolder)
           } else {
             throw new Error('Error uploading')
           }
@@ -106,8 +110,10 @@
 
       const response = await fetchFolder()
       if (response.status == 200) {
-        const data = await response.json()
-        success(data)
+        const {
+          newFolder
+        } = await response.json()
+        success(newFolder)
       } else {
         modalDuplicate.classList.add('active')
         const btnReplace = modalDuplicate.querySelector('.button.replace')
