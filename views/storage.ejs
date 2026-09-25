@@ -7,8 +7,9 @@
   <main>
     <% if(locals.currentUser && locals.folder) {%>
     <aside>
+      <input type="file" onchange="changeHandler" id="input-upload-file" hidden>
       <button class="button">Upload folder</button>
-      <button class="button">Upload file</button>
+      <button class="button" onclick="document.querySelector('#input-upload-file').click()">Upload file</button>
       <button class="button" onclick="const modal = document.getElementById('modal-folder'); modal.classList.add('active');modal.focus()">New Folder</button>
     </aside>
     <% } else{ %>
@@ -22,6 +23,11 @@
     <% if(locals.currentUser && locals.folder){ %>
     <div id="<%= folder.id %>" class="main drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)">
       <% if(locals.contents){ %>
+      <% if(contents.length==0){ %>
+      <h1 class="empty-title">This folder is empty</h1>
+      <%}else{ %>
+
+      <% } %>
       <% contents.forEach(content=>{ %>
       <%- include('partials/content', {content}) %>
       <% }) %>
@@ -33,15 +39,12 @@
     </div>
     <% } %>
   </main>
-  <% if(locals.currentUser && locals.folder){%>
-  <%- include('partials/createFolderModal') %>
-  <%- include('partials/duplicateActionsModal') %>
-  <%- include('partials/dragOverHandler') %>
-  <%- include('partials/dropHandler') %>
-  <%- include('partials/dragLeaveHandler') %>
-  <%- include('partials/closeModal') %>
-  <% } %>
-
+  <script type="module" src="/js/dragOverHandler.js"></script>
+  <script type="module" src="/js/dragLeaveHandler.js"></script>
+  <script type="module" src="/js/dropHandler.js"></script>
+  <script>
+    hola()
+  </script>
 
 </body>
 
