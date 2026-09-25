@@ -19,7 +19,6 @@
           <button class="button" id="new-folder" title="Log in to create a Folder" disabled>New Folder</label>
     </aside>
     <% } %>
-
     <% if(locals.currentUser && locals.folder){ %>
     <div id="<%= folder.id %>" class="main drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)">
       <% if(locals.contents){ %>
@@ -39,13 +38,15 @@
     </div>
     <% } %>
   </main>
-  <script type="module" src="/js/dragOverHandler.js"></script>
-  <script type="module" src="/js/dragLeaveHandler.js"></script>
-  <script type="module" src="/js/dropHandler.js"></script>
-  <script>
-    hola()
-  </script>
-
+  <%- include('partials/lib/readEntryContents') %>
+  <%- include('partials/lib/traverseDropItems') %>
+  <%- include('partials/lib/uploadItem') %>
+  <%- include('partials/handlers/changeHandler') %>
+  <%- include('partials/handlers/dropHandler') %>
+  <%- include('partials/handlers/dragOverHandler') %>
+  <%- include('partials/handlers/dragLeaveHandler') %>
+  <%- include('partials/modals/createFolderModal') %>
+  <%- include('partials/modals/duplicateActionsModal') %>
 </body>
 
 </html>

@@ -1,4 +1,28 @@
 <script>
+  function openDuplicateModal(resolve) {
+    const modalDuplicate = document.getElementById('modal-duplicate-actions')
+    modalDuplicate.classList.add('active')
+    const btnReplace = modalDuplicate.querySelector('button.replace')
+    const btnRename = modalDuplicate.querySelector('button.rename')
+
+    btnReplace.addEventListener('click', (e) => {
+      const data = {
+        action: 'replace'
+      }
+      modalDuplicate.classList.remove('active')
+      resolve(data)
+    })
+
+    btnRename.addEventListener('click', (e) => {
+      const data = {
+        action: 'rename'
+      }
+      modalDuplicate.classList.remove('active')
+      resolve(data)
+    })
+  }
+</script>
+<script>
   async function uploadItem(isDirectory, parentId, name, content, checkedDuplicates) {
     try {
       let parentElement = document.getElementById(parentId)
