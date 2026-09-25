@@ -1,7 +1,7 @@
 <script>
-  async function changeHandler(e, parentId) {
+  async function changeHandler(e) {
     const file = e.target.files[0]
-
+    const parentId = "<%=locals.folder.id%>";
     const promise = new Promise((resolve, reject) => {
       promiseResolve = resolve
       promiseReject = reject

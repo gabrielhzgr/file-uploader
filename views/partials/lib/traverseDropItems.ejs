@@ -4,11 +4,6 @@
       e.currentTarget.classList.remove('active')
 
       const folderId = e.currentTarget.id
-
-      let filesPromises = []
-
-      let rootFolders = []
-      let rootFiles = []
       let promiseResolve, promiseReject
 
       const promise = new Promise((resolve, reject) => {

@@ -5,20 +5,24 @@
     const btnReplace = modalDuplicate.querySelector('button.replace')
     const btnRename = modalDuplicate.querySelector('button.rename')
 
-    btnReplace.addEventListener('click', (e) => {
-      const data = {
-        action: 'replace'
-      }
+    function action(action) {
+      modalDuplicate.querySelectorAll("button, input").forEach((element) => {
+        element.disabled = true;
+      });
       modalDuplicate.classList.remove('active')
+      modalDuplicate.parentNode.replaceChild(modalDuplicate.cloneNode(), modalDuplicate)
+      const data = {
+        action
+      }
       resolve(data)
+    }
+
+    btnReplace.addEventListener('click', (e) => {
+      action('replace')
     })
 
     btnRename.addEventListener('click', (e) => {
-      const data = {
-        action: 'rename'
-      }
-      modalDuplicate.classList.remove('active')
-      resolve(data)
+      action('rename')
     })
   }
 </script>

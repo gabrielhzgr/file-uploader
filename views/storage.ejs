@@ -7,10 +7,10 @@
   <main>
     <% if(locals.currentUser && locals.folder) {%>
     <aside>
-      <input type="file" onchange="changeHandler" id="input-upload-file" hidden>
+      <input type="file" onchange="changeHandler(event)" id="input-upload-file" hidden>
       <button class="button">Upload folder</button>
       <button class="button" onclick="document.querySelector('#input-upload-file').click()">Upload file</button>
-      <button class="button" onclick="const modal = document.getElementById('modal-folder'); modal.classList.add('active');modal.focus()">New Folder</button>
+      <button class="button" onclick="const modalFolder = document.getElementById('modal-folder'); modalFolder.focus(); modalFolder.classList.add('active')">New Folder</button>
     </aside>
     <% } else{ %>
     <aside>

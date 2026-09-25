@@ -1,44 +1,43 @@
 <script>
-  async function createFolder(e, parentId) {
+  async function createFolderHandler(e) {
     try {
       const dropZone = document.querySelector(".main.drop-zone");
-      const modalFolder = document.querySelector("#modal-folder");
-      const modalDuplicate = document.querySelector("#modal-duplicate-actions");
+      const modalDuplicate = document.getElementById("modal-duplicate-actions");
+      const modalFolder = document.getElementById('modal-folder')
       const name = e.target.querySelector('input[name="name"]').value;
       const formData = new FormData();
       formData.append("name", name);
       e.preventDefault();
 
-      e.target.querySelectorAll("button, input").forEach((element) => {
+      modalFolder.querySelectorAll("button, input").forEach((element) => {
         element.disabled = true;
       });
 
       let newFolder = document.createElement("div");
       newFolder.innerHTML = `<div class="content folder drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)" ">
-        <span class="material-symbols-outlined">
+        <span class="material-symbols-outlined icon">
           folder
+        </span>
+        <span class="name">
         </span>
         <span class="info">
         </span>
       </div>`;
+
       newFolder = newFolder.firstElementChild;
 
       function success(data) {
         newFolder.setAttribute("id", data.id);
         newFolder.onclick = (e) => (window.location = `/storage/${data.id}/`);
-        newFolder.querySelector(".info").innerText = data.name;
+        newFolder.querySelector(".info").innerText = 'New';
+        newFolder.querySelector(".name").innerText = data.name;
         newFolder.classList.add("uploaded");
         dropZone.append(newFolder);
-        modalFolder.classList.remove("active");
-        modalDuplicate.classList.remove("active");
-        e.target.querySelectorAll("button, input").forEach((element) => {
-          element.disabled = false;
-        });
       }
 
       async function fetchFolder() {
         try {
-          const response = await fetch(`/storage/${parentId}/create/folder`, {
+          const response = await fetch(`/storage/<%=locals.folder.id %>/create/folder`, {
             method: "POST",
             body: formData,
           });
@@ -48,9 +47,11 @@
         }
       }
 
-      async function replace() {
+      async function action(formData) {
         try {
-          formData.append("action", "replace");
+          modalDuplicate.querySelectorAll(element => {
+            element.disabled = true
+          })
           const response = await fetchFolder();
           if (response.status == 200) {
             const {
@@ -63,29 +64,25 @@
         } catch (err) {
           throw err;
         } finally {
-          let newNode = modalDuplicate.cloneNode();
-          modalDuplicate.parentNode.replaceChild(newNode, modalDuplicate);
+          closeModaFolder()
+          closeModalDuplicate()
         }
       }
 
-      async function rename() {
-        try {
-          formData.append("action", "rename");
-          const response = await fetchFolder();
-          if (response.status == 200) {
-            const {
-              newFolder
-            } = await response.json();
-            success(newFolder);
-          } else {
-            throw new Error("Error uploading");
-          }
-        } catch (err) {
-          throw err;
-        } finally {
-          let newNode = modalDuplicate.cloneNode();
-          modalDuplicate.parentNode.replaceChild(newNode, modalDuplicate);
-        }
+      function closeModaFolder() {
+        modalFolder.querySelectorAll("button, input").forEach((element) => {
+          element.disabled = false;
+        });
+        modalFolder.classList.remove('active')
+        modalFolder.parentNode.replaceChild(modalDuplicate.cloneNode(), modalDuplicate);
+      }
+
+      function closeModalDuplicate() {
+        modalDuplicate.querySelectorAll("button, input").forEach((element) => {
+          element.disabled = false;
+        });
+        modalDuplicate.classList.remove('active')
+        modalDuplicate.parentNode.replaceChild(modalDuplicate.cloneNode(), modalDuplicate);
       }
 
       const response = await fetchFolder();
@@ -94,12 +91,20 @@
           newFolder
         } = await response.json();
         success(newFolder);
+        closeModaFolder()
       } else {
-        modalDuplicate.classList.add("active");
         const btnReplace = modalDuplicate.querySelector(".button.replace");
-        btnReplace.addEventListener("click", replace);
+        btnReplace.addEventListener("click", async (e) => {
+          formData.append('action', 'replace')
+          await action(formData)
+        });
         const btnRename = modalDuplicate.querySelector(".button.rename");
-        btnRename.addEventListener("click", rename);
+        btnRename.addEventListener("click", async (e) => {
+          formData.append('action', 'rename')
+          await action(formData)
+        });
+        modalDuplicate.classList.add("active");
+        modalDuplicate.focus()
       }
     } catch (err) {
       alert(err);
