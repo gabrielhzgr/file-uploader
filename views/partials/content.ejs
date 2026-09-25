@@ -1,6 +1,6 @@
 <% if(content.type=='folder'){ %>
-<div id="<%= content.id %>" class="content folder drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)" onclick="window.location.href = `/storage/<%= content.id %>/`">
-  <span class="material-symbols-outlined">
+<div id="<%= content.id %>" class="content folder drop-zone uploaded" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)" onclick="window.location.href = `/storage/<%= content.id %>/`">
+  <span class="material-symbols-outlined icon">
     folder
   </span>
   <span class="name">
@@ -8,8 +8,8 @@
   </span>
 </div>
 <% }else if(content.type.startsWith('image')){%>
-<div class="content file">
-  <span class="material-symbols-outlined">
+<div id="<%= content.id %>" class="content file image uploaded">
+  <span class="material-symbols-outlined icon">
     image
   </span>
   <span class="name">
@@ -17,8 +17,8 @@
   </span>
 </div>
 <% }else if(content.type.startsWith('video')){ %>
-<div class="content file">
-  <span class="material-symbols-outlined">
+<div id="<%= content.id %>" class="content file video uploaded">
+  <span class="material-symbols-outlined icon">
     theaters
   </span>
   <span class="name">
@@ -26,8 +26,8 @@
   </span>
 </div>
 <% }else{ %>
-<div class="content file" onclick="window.location.href = `/storage/<%= content.id %>/`">
-  <span class="material-symbols-outlined">
+<div id="<%= content.id %>" class="content file other uploaded" onclick="window.location.href = `/storage/<%= content.id %>/`">
+  <span class="material-symbols-outlined icon">
     article
   </span>
   <span class="name">

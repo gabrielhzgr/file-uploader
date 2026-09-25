@@ -47,8 +47,8 @@
               throw nerr;
             }
           })
-          .then(content => {
-            uploadItem(
+          .then(async content => {
+            await uploadItem(
               entry.isDirectory,
               folderId,
               entry.name,
@@ -87,16 +87,12 @@
       }
       let childElement = document.createElement('div')
       childElement.innerHTML = `
-      <div class="content loading ${isDirectory ? 'folder' : 'file'}">
-      <span class="material-symbols-outlined">
+      <div class="content loading ${isDirectory ? 'folder' : content.type.startsWith('image') ? 'image' : content.type.startsWith('video') ? 'video' : 'other'} ">
+      <span class="material-symbols-outlined icon">
         ${isDirectory ? 'folder' : content.type.startsWith('image') ? 'image' : content.type.startsWith('video') ? 'theaters' : 'article'} 
       </span>
-      <span class="name">
-        ${name}
-      </span>
-      <span class="info">
-      ${isDirectory? `Uploaded 0 of ${content.fileObjects.length}`: 'Uploading'}
-      </span>
+      <span class="name">${name}</span>
+      <span class="info">${isDirectory? `Uploaded 0 of ${content.fileObjects.length}`: 'Uploading'}</span>
       </div>`
 
       childElement = childElement.firstElementChild
@@ -122,37 +118,42 @@
           formData.append('file', content)
 
 
-          async function uploadWithAction(params) {
+          async function uploadWithAction() {
             try {
               const {
                 action
               } = await checkedDuplicates.promise
               formData.append('action', action)
               const response = await myFetch(url, formData)
-              const {
-                existingFile,
-                newFile
-              } = await response.json()
-
-
-              if (action == 'rename') {
+              if (response.status == 200) {
+                const startTime = performance.now()
+                const {
+                  existingFile,
+                  newFile
+                } = await response.json()
+                const endTime = performance.now()
+                console.log(`It took ${(endTime-startTime)/1000} seconds to upload file ${newFile.name} with action ${action}`);
                 childElement.classList.remove('loading')
                 childElement.setAttribute('id', newFile.id)
                 childElement.querySelector('.info').innerText = 'Uploaded'
-                childElement.querySelector('.name').innerText = newFile.name
-              } else if (action == 'replace') {
-                if (isParentMain) {
-                  const replacedFile = document.getElementById(existingFile.id)
-                  if (replacedFile) {
-                    replacedFile.remove()
+                childElement.classList.add('uploaded')
+
+                if (action == 'rename') {
+                  childElement.querySelector('.name').innerText = newFile.name
+                } else if (action == 'replace') {
+                  if (isParentMain) {
+                    const replacedFile = document.getElementById(existingFile.id)
+                    if (replacedFile) {
+                      replacedFile.classList.add('removed')
+                    }
+                    setTimeout(() => {
+                      replacedFile.remove()
+                    }, 3000)
                   }
                 }
-
-                childElement.classList.remove('loading')
-                childElement.setAttribute('id', newFile.id)
-                childElement.querySelector('.info').innerText = 'Uploaded'
+              } else {
+                throw new Error("Error uploading file");
               }
-
             } catch (err) {
               throw err
             }
@@ -161,14 +162,22 @@
           if (checkedDuplicates.found) {
             await uploadWithAction()
           } else {
+            console.log('Started uploading' + name);
+            const startUploadFile = performance.now()
             const response = await myFetch(url, formData)
+            const endUploadFile = performance.now()
+            console.log(`Took ${(endUploadFile - startUploadFile)/1000} seconds to upload file`);
+
             if (response.status == 200) {
               const {
                 newFile
               } = await response.json()
+              const endUploadFile = performance.now()
+
               childElement.classList.remove('loading')
               childElement.setAttribute('id', newFile.id)
               childElement.querySelector('.info').innerText = 'Uploaded'
+              childElement.classList.add('uploaded')
             } else {
               if (!checkedDuplicates.found) {
                 checkedDuplicates.found = true
@@ -192,14 +201,13 @@
             fileObjects
           } = content
 
-          const folderId = folders[0].id
 
           async function fetchFolder() {
             console.log(`Uploading folder to ${name}`);
             const formData = new FormData()
             formData.append('folders', JSON.stringify(folders))
 
-            await myFetch(`/storage/${folderId}/create/folders`, formData)
+            await myFetch(`/storage/${parentId}/create/folders`, formData)
 
             let filesPromises = []
             for (const fileObj of fileObjects) {
@@ -214,12 +222,10 @@
               formData.append('file', file)
               filesPromises.push(new Promise(async function(resolve, reject) {
                 try {
-                  console.log(`fired file promise in ${name}`);
+                  console.log(`fired file ${file.originalname} promise in folder ${name}`);
 
                   const response = await myFetch(url, formData)
-                  childElement.querySelector('.info').innerText = `
-                    Uploaded ${++uploadedCount} of ${totalCount}
-                  `
+                  childElement.querySelector('.info').innerText = `Uploaded ${++uploadedCount} of ${totalCount}`
                   resolve()
                 } catch (err) {
                   throw err
@@ -229,9 +235,7 @@
             console.log(`Finished pushing promises to ${name}`);
 
             await Promise.all(filesPromises)
-            childElement.id = folderId
-            childElement.onclick = (e) => window.location.href = `/storage/${folderId}/`
-            childElement.classList.remove('loading')
+
 
           }
 
@@ -248,8 +252,15 @@
             const response = await myFetch(url, formData)
             if (response.status == 200) {
               folders.splice(0, 1)
-              const newFolder = await response.json()
+              const {
+                newFolder
+              } = await response.json()
               await fetchFolder()
+              childElement.id = newFolder.id
+              childElement.onclick = (e) => window.location.href = `/storage/${newFolder.id}/`
+              childElement.classList.remove('loading')
+              childElement.classList.add('uploaded')
+
             } else {
               if (!checkedDuplicates.found) {
                 checkedDuplicates.found = true
@@ -263,12 +274,37 @@
               if (response.status == 200) {
                 folders.splice(0, 1)
                 if (action == 'rename') {
-                  const newFolder = await response.json()
+                  const {
+                    newFolder
+                  } = await response.json()
+                  await fetchFolder()
                   childElement.querySelector('.name').innerText = newFolder.name
-                  await fetchFolder()
+                  childElement.id = newFolder.id
+                  childElement.onclick = (e) => window.location.href = `/storage/${newFolder.id}/`
+                  childElement.classList.remove('loading')
+                  childElement.classList.add('uploaded')
                 } else if (action == 'replace') {
-                  document.getElementById(folderId).remove()
+                  const {
+                    newFolder,
+                    existingFolder
+                  } = await response.json()
+                  if (isParentMain) {
+                    const replacedFolder = document.getElementById(existingFolder.id)
+                    if (replacedFolder) {
+                      replacedFolder.classList.add('removed')
+                    }
+                    setTimeout(() => {
+                      replacedFolder.remove()
+                    }, 3000)
+
+                    //TODO TEST REPLACE FOLDER (NAME OF UPLOAD FOLDER ALREADY PRESENT IN FOLDER)
+                  }
+
                   await fetchFolder()
+                  childElement.id = newFolder.id
+                  childElement.onclick = (e) => window.location.href = `/storage/${newFolder.id}/`
+                  childElement.classList.remove('loading')
+                  childElement.classList.add('uploaded')
                 }
               } else {
                 throw new Error("Error uploading");

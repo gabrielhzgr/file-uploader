@@ -35,7 +35,7 @@ async function getFolder(req, res, next) {
 async function createFolder(req, res, next) {
   try {
     const { user } = req;
-    const { id, name, action, existingId } = req.body;
+    const { id, name, action } = req.body;
     const { folderId } = req.params;
     const data = { id, name, parentFolderId: folderId, ownerId: user.id };
     if (id) {
@@ -53,18 +53,19 @@ async function createFolder(req, res, next) {
       }
     } else if (action == "rename") {
       let newFolder =
-        await prisma.$queryRaw`SELECT create_folder(${crypto.randomUUID()},${data.name}, ${folderId}, ${data.ownerId})`;
+        await prisma.$queryRaw`SELECT create_folder(${data.id},${data.name}, ${folderId}, ${data.ownerId})`;
       newFolder = newFolder[0].create_folder;
-      res.json({ newFolder });
+      return res.json({ newFolder });
     } else if (action == "replace") {
       const existingFolder = await prisma.folder.findFirst({
         where: { parentFolderId: folderId, name },
+        include: { subFolders: true, files: true },
       });
       if (existingFolder) {
         await deleteFolder(existingFolder);
       }
       const newFolder = await prisma.folder.create({ data });
-      return res.json({ newFolder });
+      return res.json({ newFolder, existingFolder });
     }
   } catch (err) {
     next(err);
@@ -73,30 +74,23 @@ async function createFolder(req, res, next) {
 
 async function deleteFolder(folder) {
   try {
-    const { id, parentFolderId } = folder;
-    const files = await prisma.file.findMany({ where: { folderId: id } });
-    const subfolders = await prisma.folder.findMany({
-      where: { parentFolderId },
-    });
-
-    for (const file of files) {
+    for (const file of folder.files) {
       await deleteFile(file);
     }
-
-    for (const subfolder of subfolders) {
+    for (const subfolder of folder.subFolders) {
       await deleteFolder(subfolder);
     }
-    await prisma.folder.delete({ where: { id } });
+    await prisma.folder.delete({ where: { id: folder.id } });
   } catch (err) {
     throw err;
   }
 }
 
-async function deleteFile(file) {
+async function deleteFile(file, ownerId) {
   ///TODO: Test this when replacing or from a menu
   const { id, name } = file;
   await prisma.file.delete({ where: { id } });
-  await supabase.storage.from(userId).remove([`${id}/${name}`]);
+  await supabase.storage.from(ownerId).remove([`${id}/${name}`]);
 }
 
 async function createFolders(req, res, next) {
@@ -127,6 +121,7 @@ async function uploadFile(req, res, next) {
       mimetype: file.mimetype,
       folderId: folderId,
     };
+    let startUploadFile = performance.now();
 
     if (!action) {
       const existingFile = await prisma.file.findFirst({
@@ -141,6 +136,14 @@ async function uploadFile(req, res, next) {
           .upload(path.join(newFile.id, file.originalname), file.buffer, {
             contentType: file.mimetype,
           });
+        let endUploadFile = performance.now();
+        console.log(
+          `It took ${(endUploadFile - startUploadFile) / 1000} seconds to upload file ${data.name} with no duplicates`,
+        );
+        console.log(
+          "=======================================================================",
+        );
+
         return res.json({ newFile });
       }
     } else if (action == "rename") {
@@ -149,19 +152,48 @@ async function uploadFile(req, res, next) {
       newFile = newFile[0].create_file;
       res.json({ newFile });
     } else if (action == "replace") {
+      const start = performance.now();
+      const startFindFile = performance.now();
       const existingFile = await prisma.file.findFirst({
         where: { folderId, name: file.originalname },
       });
+      const endFindFile = performance.now();
+      console.log(
+        `It took ${(endFindFile - startFindFile) / 1000} seconds to find existing file`,
+      );
       if (existingFile) {
-        deleteFile(existingFile);
+        const startDeleteFile = performance.now();
+        await deleteFile(existingFile, user.id);
+        const endDeleteFile = performance.now();
+        console.log(
+          `It took ${(endDeleteFile - startDeleteFile) / 1000} seconds to delete existing file`,
+        );
       }
+      const startCreateFile = performance.now();
       const newFile = await prisma.file.create({ data });
+      const endCreateFile = performance.now();
+      console.log(
+        `It took ${(endCreateFile - startCreateFile) / 1000} seconds to create new file in db`,
+      );
+      const startUploadFile = performance.now();
       await supabase.storage
         .from(user.id)
         .upload(path.join(newFile.id, file.originalname), file.buffer, {
           contentType: file.mimetype,
         });
-      return res.json({ newFile });
+      const endUploadFile = performance.now();
+      console.log(
+        `It took ${(endUploadFile - startUploadFile) / 1000} seconds to upload file in bucket`,
+      );
+
+      const end = performance.now();
+      console.log(
+        `It took ${(end - start) / 1000} seconds to upload file ${data.name} with replacing`,
+      );
+
+      console.log("===================================================");
+
+      return res.json({ existingFile, newFile });
     }
   } catch (err) {
     next(err);

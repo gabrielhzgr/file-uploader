@@ -4,18 +4,19 @@
   box-sizing: border-box;
   font-family: "Lucida Console", "Courier New", monospace;
   --first-color: palegreen;
-  --second-color: dodgerblue;
+  --main-color: rgba(30, 143, 255, 0.868);
   --third-color: lightblue;
   --bg-color: white;
   --box-shadow: 0px 2px 1px grey;
   --main-bg: rgba(245, 245, 245, 0.889);
   --success-bg: palegreen;
   --error-bg: lightcoral;
+  --blur: 5px;
 }
 
 .material-symbols-outlined {
   font-variation-settings:
-    "FILL" 0,
+    "FILL" 1,
     "wght" 400,
     "GRAD" 0,
     "opsz" 24;
@@ -49,8 +50,7 @@ header {
   align-items: center;
   padding: 10px;
   background-color: var(--main-bg);
-  backdrop-filter: blur(2px);
-
+  backdrop-filter: blur(var(--blur));
   z-index: 1;
   border-radius: 10px;
 }
@@ -61,13 +61,13 @@ div.links {
 }
 
 h1.logo {
-  color: var(--second-color);
+  color: var(--main-color);
   font-weight: bolder;
   font-style: italic;
 }
 
 a {
-  color: var(--second-color);
+  color: var(--main-color);
 }
 
 form {
@@ -78,7 +78,7 @@ form {
   gap: 20px;
   box-shadow: var(--box-shadow);
   background-color: var(--bg-color);
-  color: var(--second-color);
+  color: var(--main-color);
   padding: 20px;
   height: fit-content;
   border-radius: 10px;
@@ -120,7 +120,8 @@ label:has(input:required) > h2::after {
 }
 
 .button {
-  background-color: var(--second-color);
+  background-color: var(--main-color);
+  backdrop-filter: blur(var(--blur));
   color: white;
   font-weight: bolder;
   text-shadow: 0px 1px 1px black;
@@ -182,7 +183,7 @@ span.close {
   font-weight: bolder;
   padding: 5px;
   cursor: pointer;
-  color: var(--second-color);
+  color: var(--main-color);
 }
 
 main > .drop-zone {
@@ -218,6 +219,7 @@ aside {
   gap: 10px;
   flex-direction: column;
   background-color: var(--main-bg);
+  backdrop-filter: blur(var(--blur));
   border-radius: 10px;
 }
 
@@ -227,8 +229,17 @@ aside .button {
 .content {
   position: relative;
   display: flex;
+  gap: 5px;
   align-items: center;
   border-bottom: thin solid grey;
+  height: 30px;
+}
+
+.content > * {
+  height: inherit;
+  display: flex;
+  align-items: center;
+  vertical-align: middle;
 }
 
 @keyframes loading {
@@ -241,8 +252,57 @@ aside .button {
   }
 }
 
+@keyframes removed {
+  from {
+    height: 35px;
+  }
+
+  to {
+    height: 0px;
+  }
+}
+
+.content > span.icon {
+  line-height: inherit;
+  vertical-align: bottom;
+}
+
 .content.folder {
   cursor: pointer;
+}
+
+.folder > .icon {
+  color: tan;
+}
+
+.image > .icon {
+  color: violet;
+}
+
+.video > .icon {
+  color: blue;
+}
+
+.other > .icon {
+  color: grey;
+}
+.content.folder.uploaded:hover * {
+  color: var(--main-color);
+}
+
+.content.uploaded span.info {
+  color: var(--main-color);
+}
+
+.content.removed {
+  text-decoration: line-through;
+  animation: removed;
+  animation-duration: 2.5s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  overflow: hidden;
+  text-decoration: line-through red;
+  color: red;
 }
 
 .content.loading {
@@ -272,14 +332,14 @@ div.modal {
   justify-content: center;
   align-items: center;
   background-color: rgba(211, 211, 211, 0.174);
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(var(--blur));
   z-index: 1;
 }
 
 div.modal.duplicate > div.info {
   box-shadow: var(--box-shadow);
   background-color: var(--bg-color);
-  color: var(--second-color);
+  color: var(--main-color);
   padding: 20px;
   height: fit-content;
   border-radius: 10px;
