@@ -3,6 +3,7 @@ const prisma = require("../lib/prisma");
 const supabase = require("../lib/supabase");
 const path = require("node:path");
 const { start } = require("node:repl");
+const CustomNotFoundError = require("../errors/CustomNotFoundError");
 //const getHierarchy = require("../lib/getHierarchy.js");
 
 async function getStorageIndex(req, res, next) {
@@ -12,6 +13,8 @@ async function getStorageIndex(req, res, next) {
   const rootFolder = await prisma.folder.findFirst({
     where: { parentFolderId: null, ownerId: req.user.id },
   });
+  console.log(rootFolder.id);
+
   res.redirect(`/storage/${rootFolder.id}`);
 }
 
@@ -22,6 +25,10 @@ async function getFolder(req, res, next) {
     const contents = await prisma.$queryRawTyped(
       require("../generated/prisma/sql").getFolderContents(folderId),
     );
+    if (!folder) {
+      const err = new CustomNotFoundError("This folder could not be found");
+      throw err;
+    }
     res.render("storage", {
       title: `Storage | ${folder.name}`,
       folder,
@@ -199,6 +206,8 @@ async function uploadFile(req, res, next) {
     next(err);
   }
 }
+//TODO: Add controllers renameFile,renameFolder, downloadFile, donwloadFolder,
+// more info File, more info Folder, delete
 
 module.exports = {
   getStorageIndex,
