@@ -55,6 +55,9 @@ app.use(
   }),
 );
 
+//TODO: Find a way to tell a first time logged in user that they can drag files.
+// Probably using req.session.count or something like that
+
 //PASSPORT AUTHENTICATION
 passport.use(
   new LocalStrategy(
@@ -114,7 +117,7 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  res
-    .status(err.statusCode || 500)
-    .render("errorPage", { title: "Error", errorMessage: err.message });
+  const statusCode = err.statusCode || 500;
+  const errorMessage = err.statusCode ? err.message : "There were some errors";
+  res.status(statusCode).render("errorPage", { title: "Error", errorMessage });
 });

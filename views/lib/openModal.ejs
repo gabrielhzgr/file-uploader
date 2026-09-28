@@ -1,0 +1,26 @@
+<script>
+  function openModal(resolve, modal, buttons, actions) {
+    modal.focus()
+    modal.classList.add('active')
+    const btnReplace = modal.querySelector('button.replace');
+    const btnRename = modal.querySelector('button.rename');
+    const btnClose = modal.querySelector('span.close');
+
+    function action(action) {
+      modal.querySelectorAll("button, input").forEach((element) => {
+        element.disabled = true;
+      });
+      closeModal.call(modal, new Event('click'))
+      const data = {
+        action
+      }
+      resolve(data)
+    }
+
+    buttons.forEach((button, index) => {
+      button.addEventListener("click", (e) => {
+        action(actions[index])
+      })
+    })
+  }
+</script>

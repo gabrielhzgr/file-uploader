@@ -1,22 +1,37 @@
 <script>
+  async function dropHandler(e) {
+    try {
+      e.preventDefault();
+      if (e.currentTarget.classList.contains("drop-zone")) {
+        e.stopPropagation();
+        const folderId = e.currentTarget.id;
+        await traverseDropItems(e);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+</script>
+<script>
   async function traverseDropItems(e) {
     try {
       e.currentTarget.classList.remove('active')
 
       const folderId = e.currentTarget.id
-      let promiseResolve, promiseReject
 
-      const promise = new Promise((resolve, reject) => {
-        promiseResolve = resolve
-        promiseReject = reject
+      let promiseDupResolve, promiseDupReject
+      const promiseDuplicate = new Promise((resolve, reject) => {
+        promiseDupResolve = resolve
+        promiseDupReject = reject
       })
 
       const checkedDuplicates = {
-        promise,
+        promise: promiseDuplicate,
         found: false,
-        resolve: promiseResolve,
-        reject: promiseReject
+        resolve: promiseDupResolve,
+        reject: promiseDupReject
       }
+
 
       for (const item of e.dataTransfer.items) {
         let entry = item.webkitGetAsEntry()

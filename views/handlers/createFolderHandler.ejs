@@ -1,0 +1,142 @@
+<script>
+  async function createFolderHandler(e) {
+    //TODO: Test all this refactoring didnt break
+    try {
+      e.preventDefault();
+      let childElement, dropZone;
+      let formData;
+      let create, promiseCreateResolve, promiseCreateReject, promiseCreate;
+      const modalFolder = document.getElementById('modal-folder')
+
+      function setUp() {
+        childElement = document.createElement("div");
+        childElement.innerHTML = `<div class="content folder drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)" ">
+          <span class="material-symbols-outlined icon">
+            folder
+          </span>
+          <span class="name">
+          </span>
+          <span class="info">
+          </span>
+        </div>`;
+        childElement = childElement.firstElementChild;
+        dropZone = document.querySelector(".main.drop-zone");
+
+        promiseCreate = new Promise((resolve, reject) => {
+          promiseCreateResolve = resolve
+          promiseCreateReject = reject
+        })
+
+        create = {
+          promise: promiseCreate,
+          resolve: promiseCreateResolve,
+          reject: promiseCreateReject
+        }
+
+        const buttons = [modalFolder.querySelector('button[type="submit"]')]
+        const actions = ['create']
+
+        openModal(create.resolve, modalFolder, buttons, actions)
+        createFolder()
+      }
+
+      function success(action, newFolder, existingFolder) {
+        dropZone.append(childElement);
+        childElement.setAttribute("id", newFolder.id);
+        childElement.onclick = (e) => (window.location = `/storage/${newFolder.id}/`);
+        childElement.querySelector(".info").innerText = 'New';
+        childElement.querySelector(".name").innerText = newFolder.name;
+        childElement.classList.add("uploaded");
+
+        if (action == "replace") {
+          const replacedFolder = document.getElementById(existingFolder.id)
+          if (replacedFolder) {
+            close(replacedFolder)
+          }
+        }
+      }
+
+      function close(element) {
+        element.classList.add('removed')
+        setTimeout(() => {
+          element.remove()
+        }, 3000)
+      }
+
+      async function myFetch() {
+        try {
+          const response = await fetch(`/storage/<%=locals.folder.id %>/create/folder`, {
+            method: "POST",
+            body: formData,
+          });
+          return response;
+        } catch (err) {
+          throw err;
+        }
+      }
+
+      async function createFolder() {
+        await create.promise
+        formData = new FormData()
+        formData.append("name", modalFolder.querySelector('input.name').value);
+        formData.append("id", crypto.randomUUID())
+        const response = await myFetch();
+        if (response.status == 200) {
+          const {
+            newFolder
+          } = await response.json();
+          success('create', newFolder, existingFolder = null);
+        } else {
+          let promiseDupResolve, promiseDupReject
+          const promiseDuplicate = new Promise((resolve, reject) => {
+            promiseDupResolve = resolve
+            promiseDupReject = reject
+          })
+
+          const checkedDuplicates = {
+            promise: promiseDuplicate,
+            resolve: promiseDupResolve,
+            reject: promiseDupReject
+          }
+          const modal = document.getElementById("modal-duplicate-actions")
+
+          const buttons = [
+            modal.querySelector('.button.replace'),
+            modal.querySelector('.button.rename'),
+            modal.querySelector('span.close'),
+          ]
+
+          const actions = [
+            'replace',
+            'rename',
+            'close'
+          ]
+
+          openModal(checkedDuplicates.resolve, modal, buttons, actions)
+
+          const {
+            action
+          } = await checkedDuplicates.promise
+          if (action == 'close') {
+            close()
+          } else {
+            formData.append('action', action)
+            const response = await myFetch()
+            if (response.status == 200) {
+              const {
+                newFolder,
+                existingFolder
+              } = await response.json()
+              success(action, newFolder, existingFolder)
+            }
+          }
+
+        }
+
+      }
+      setUp()
+    } catch (err) {
+      alert(err);
+    }
+  }
+</script>

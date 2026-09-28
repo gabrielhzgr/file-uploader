@@ -7,10 +7,11 @@
   <main>
     <% if(locals.currentUser && locals.folder) {%>
     <aside>
-      <input type="file" onchange="changeHandler(event)" id="input-upload-file" hidden>
+      <input type="file" multiple onchange="changeHandler(event)" id="input-upload-file" hidden>
       <button class="button">Upload folder</button>
-      <button class="button" onclick="document.querySelector('#input-upload-file').click()">Upload file</button>
-      <button class="button" onclick="const modalFolder = document.getElementById('modal-folder'); modalFolder.focus(); modalFolder.classList.add('active')">New Folder</button>
+      <!--TODO: onclick: open select folder, use uploadItem to upload it-->
+      <button class="button" onclick="document.querySelector('#input-upload-file').click()">Upload files</button>
+      <button class="button" onclick="createFolderHandler(event)">New Folder</button>
     </aside>
     <% } else{ %>
     <aside>
@@ -22,11 +23,6 @@
     <% if(locals.currentUser && locals.folder){ %>
     <div id="<%= folder.id %>" class="main drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)">
       <% if(locals.contents){ %>
-      <% if(contents.length==0){ %>
-      <h1 class="empty-title">This folder is empty</h1>
-      <%}else{ %>
-
-      <% } %>
       <% contents.forEach(content=>{ %>
       <%- include('partials/content', {content}) %>
       <% }) %>
@@ -38,15 +34,19 @@
     </div>
     <% } %>
   </main>
-  <%- include('partials/lib/readEntryContents') %>
-  <%- include('partials/lib/traverseDropItems') %>
-  <%- include('partials/lib/uploadItem') %>
-  <%- include('partials/handlers/changeHandler') %>
-  <%- include('partials/handlers/dropHandler') %>
-  <%- include('partials/handlers/dragOverHandler') %>
-  <%- include('partials/handlers/dragLeaveHandler') %>
-  <%- include('partials/modals/createFolderModal') %>
-  <%- include('partials/modals/duplicateActionsModal') %>
+  <% if(locals.currentUser && locals.folder){ %>
+  <%- include('lib/openModal') %>
+  <%- include('lib/closeModal') %>
+  <%- include('lib/readEntryContents') %>
+  <%- include('lib/uploadItem') %>
+  <%- include('handlers/changeHandler') %>
+  <%- include('handlers/dropHandler') %>
+  <%- include('handlers/dragOverHandler') %>
+  <%- include('handlers/dragLeaveHandler') %>
+  <%- include('handlers/createFolderHandler') %>
+  <%- include('modals/createFolderModal') %>
+  <%- include('modals/duplicateActionsModal') %>
+  <% } %>
 </body>
 
 </html>

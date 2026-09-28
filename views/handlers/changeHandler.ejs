@@ -1,0 +1,40 @@
+<script>
+  async function changeHandler(e) {
+    e.preventDefault()
+    await traverseFiles(e)
+  }
+</script>
+<script>
+  async function traverseFiles(e) {
+    try {
+      const files = e.target.files
+      const parentId = "<%=locals.folder.id%>";
+
+      let promiseResolve, promiseReject
+
+      const promise = new Promise((resolve, reject) => {
+        promiseResolve = resolve
+        promiseReject = reject
+      })
+
+      const checkedDuplicates = {
+        promise,
+        found: false,
+        resolve: promiseResolve,
+        reject: promiseReject
+      }
+
+      for (const file of files) {
+        await uploadItem(
+          false,
+          parentId,
+          file.name,
+          file,
+          checkedDuplicates
+        )
+      }
+    } catch (err) {
+      throw err
+    }
+  }
+</script>

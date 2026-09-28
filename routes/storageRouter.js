@@ -40,4 +40,7 @@ storageRouter.post(
   storageControllers.createFolders,
 );
 
+//TODO: Add routes renameFile, renameFolder, downloadFile, donwloadFolder,
+// more info File, more info Folder, deleteFile, deleteFolder
+
 module.exports = storageRouter;

@@ -1,0 +1,265 @@
+<script>
+  async function uploadItem(isDirectory, parentId, name, content, checkedDuplicates) {
+    //TODO: Test all this refactoring didnt break
+    try {
+      let parentElement, isParentMain = true,
+        childElement
+      let modalDuplicate
+
+
+      function setUp() {
+        isParentMain = true
+        parentElement = document.getElementById(parentId)
+        modalDuplicate = document.querySelector('#modal-duplicate-actions')
+
+        if (!parentElement.classList.contains('main')) {
+          isParentMain = false
+          parentElement = document.querySelector('.flash.progress')
+          if (!parentElement) {
+            parentElement = Object.assign(document.createElement('div'), {
+              className: 'flash progress'
+            })
+            document.body.prepend(parentElement)
+          }
+        }
+
+        childElement = document.createElement('div')
+        childElement.innerHTML = `
+        <div class="content loading ${isDirectory ? 'folder' : content.type.startsWith('image') ? 'image' : content.type.startsWith('video') ? 'video' : 'other'} ">
+        <span class="material-symbols-outlined icon">
+          ${isDirectory ? 'folder' : content.type.startsWith('image') ? 'image' : content.type.startsWith('video') ? 'theaters' : 'article'} 
+        </span>
+        <span class="name">${name}</span>
+        <span class="info">${isDirectory? `Uploaded 0 of ${content.fileObjects.length}`: 'Uploading'}</span>
+        </div>`
+
+        childElement = childElement.firstElementChild
+        parentElement.append(childElement)
+      }
+
+      function success(action, newItem, existig) {
+        childElement.classList.remove('loading')
+        childElement.setAttribute('id', newItem.id)
+        childElement.querySelector('.info').innerText = 'Uploaded'
+        childElement.querySelector('.name').innerText = newItem.name
+        childElement.classList.add('uploaded')
+
+        if (isParentMain) {
+          const replaced = document.getElementById(existing.id)
+          if (replaced) {
+            close(replaced)
+          }
+        }
+      }
+
+      function close(element) {
+        element.classList.add('removed')
+        setTimeout(() => {
+          element.remove()
+        }, 3000)
+      }
+
+      function myFetch(url, formData) {
+        return fetch(url, {
+          method: 'POST',
+          body: formData
+        })
+      }
+
+      setUp()
+
+      if (isDirectory) {
+        await uploadFolder(parentId, name, content, checkedDuplicates)
+      } else {
+        await uploadFile(parentId, name, content, checkedDuplicates)
+      }
+
+      async function uploadFile(parentId, name, content, checkedDuplicates) {
+        try {
+          const url = `/storage/${parentId}/upload/file`
+          const formData = new FormData()
+          formData.append('file', content)
+
+          async function action(action) {
+            if (action == 'close') {
+              close(childElement)
+            } else {
+              if (action == 'replace' || action == 'rename') {
+                formData.append('action', action)
+              }
+              const response = await myFetch(url, formData)
+              if (response.status == 200) {
+                const {
+                  existingFile,
+                  newFile
+                } = await response.json()
+                success(action, newFile, existingFile)
+                return response
+              } else {
+                throw new Error("Error uploading file");
+              }
+            }
+          }
+
+          async function upload() {
+            try {
+              if (checkedDuplicates.found) {
+                const {
+                  action
+                } = await checkedDuplicates.promise
+                await action(action)
+              } else {
+                const response = await action(action = null)
+                if (response.status !== 200) {
+                  if (!checkedDuplicates.found) {
+                    checkedDuplicates.found = true
+                    openModal(
+                      resolve = checkedDuplicates.resolve,
+                      modal = modalDuplicate,
+                      buttons = [
+                        modalDuplicate.querySelector('.button.replace'),
+                        modalDuplicate.querySelector('.button.rename')
+                      ],
+                      actions = ['replace', 'rename']
+                    )
+                    const {
+                      action
+                    } = await checkedDuplicates.promise
+                    await action(action)
+                  }
+                }
+              }
+            } catch (err) {
+              throw err
+            }
+          }
+          await upload()
+
+        } catch (err) {
+          throw err
+        }
+      }
+
+
+      /*
+
+      async function uploadFolder(parentId, name, content, checkedDuplicates) {
+        try {
+          console.log(name);
+          let uploadedCount = 0
+          const totalCount = content.fileObjects.length
+          let {
+            folders,
+            fileObjects
+          } = content
+
+          async function fetchFolder() {
+            console.log(`Uploading folder to ${name}`);
+            formData.append('folders', JSON.stringify(folders))
+            await myFetch(`/storage/${parentId}/create/folders`, formData)
+            let filesPromises = []
+            for (const fileObj of fileObjects) {
+              console.log(`In loop of folder ${name}`);
+              const {
+                file,
+                parentId
+              } = fileObj
+              const url = `/storage/${parentId}/upload/file`
+              const formData = new FormData()
+              formData.append('file', file)
+              filesPromises.push(new Promise(async function(resolve, reject) {
+                try {
+                  console.log(`fired file ${file.name} promise in folder ${name}`);
+                  const response = await myFetch(url, formData)
+                  childElement.querySelector('.info').innerText = `Uploaded ${++uploadedCount} of ${totalCount}`
+                  resolve()
+                } catch (err) {
+                  throw err
+                }
+              }))
+            }
+            await Promise.all(filesPromises)
+          }
+
+          function success(newFolder) {
+            childElement.id = newFolder.id
+            childElement.onclick = (e) => window.location.href = `/storage/${newFolder.id}/`
+            childElement.classList.remove('loading')
+            childElement.classList.add('uploaded')
+          }
+
+          function cancel() {
+            childElement.classList.add('removed')
+            setTimeout(() => {
+              childElement.remove()
+            }, 3000)
+          }
+
+          if (!checkedDuplicates.found) {
+            const {
+              name,
+              parentId,
+              id
+            } = folders[0]
+            const url = `/storage/${parentId}/create/folder`
+            const formData = new FormData()
+            formData.append('name', name)
+            formData.append('id', id)
+            const response = await myFetch(url, formData)
+            if (response.status == 200) {
+              folders.splice(0, 1)
+              const {
+                newFolder
+              } = await response.json()
+              await fetchFolder()
+              success(newFolder)
+            } else {
+              if (!checkedDuplicates.found) {
+                checkedDuplicates.found = true
+                openDuplicateModal(checkedDuplicates.resolve)
+              }
+              const {
+                action
+              } = await checkedDuplicates.promise
+              formData.append('action', action)
+              const response = await myFetch(url, formData)
+              if (response.status == 200) {
+                folders.splice(0, 1)
+                if (action == 'rename') {
+                  const {
+                    newFolder
+                  } = await response.json()
+                  await fetchFolder()
+                  success(newFolder)
+                } else if (action == 'replace') {
+                  const {
+                    newFolder,
+                    existingFolder
+                  } = await response.json()
+                  await fetchFolder()
+                  if (isParentMain) {
+                    const replacedFolder = document.getElementById(existingFolder.id)
+                    if (replacedFolder) {
+                      replacedFolder.remove()
+                    }
+                  }
+                  success(newFolder)
+                } else if (action == 'cancel') {
+                  cancel()
+                }
+              } else {
+                throw new Error("Error uploading");
+              }
+            }
+          }
+        } catch (err) {
+          throw err
+        }
+      }
+        */
+
+    } catch (err) {
+      console.log(err);
+    }
+  }
+</script>
