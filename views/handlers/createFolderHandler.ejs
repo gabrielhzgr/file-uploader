@@ -33,8 +33,10 @@
           reject: promiseCreateReject
         }
 
-        const buttons = [modalFolder.querySelector('button[type="submit"]')]
-        const actions = ['create']
+        const buttons = [modalFolder.querySelector('button[type="submit"]'),
+          modalFolder.querySelector('span.close')
+        ]
+        const actions = ['create', 'close']
 
         openModal(create.resolve, modalFolder, buttons, actions)
         createFolder()
@@ -76,63 +78,66 @@
       }
 
       async function createFolder() {
-        await create.promise
-        formData = new FormData()
-        formData.append("name", modalFolder.querySelector('input.name').value);
-        formData.append("id", crypto.randomUUID())
-        const response = await myFetch();
-        if (response.status == 200) {
-          const {
-            newFolder
-          } = await response.json();
-          success('create', newFolder, existingFolder = null);
-        } else {
-          let promiseDupResolve, promiseDupReject
-          const promiseDuplicate = new Promise((resolve, reject) => {
-            promiseDupResolve = resolve
-            promiseDupReject = reject
-          })
-
-          const checkedDuplicates = {
-            promise: promiseDuplicate,
-            resolve: promiseDupResolve,
-            reject: promiseDupReject
-          }
-          const modal = document.getElementById("modal-duplicate-actions")
-
-          const buttons = [
-            modal.querySelector('.button.replace'),
-            modal.querySelector('.button.rename'),
-            modal.querySelector('span.close'),
-          ]
-
-          const actions = [
-            'replace',
-            'rename',
-            'close'
-          ]
-
-          openModal(checkedDuplicates.resolve, modal, buttons, actions)
-
-          const {
-            action
-          } = await checkedDuplicates.promise
-          if (action == 'close') {
-            close()
+        const {
+          action
+        } = await create.promise
+        if (action == 'create') {
+          formData = new FormData()
+          formData.append("name", modalFolder.querySelector('input.name').value);
+          formData.append("id", crypto.randomUUID())
+          const response = await myFetch();
+          if (response.status == 200) {
+            const {
+              newFolder
+            } = await response.json();
+            success('create', newFolder, existingFolder = null);
           } else {
-            formData.append('action', action)
-            const response = await myFetch()
-            if (response.status == 200) {
-              const {
-                newFolder,
-                existingFolder
-              } = await response.json()
-              success(action, newFolder, existingFolder)
+            let promiseDupResolve, promiseDupReject
+            const promiseDuplicate = new Promise((resolve, reject) => {
+              promiseDupResolve = resolve
+              promiseDupReject = reject
+            })
+
+            const checkedDuplicates = {
+              promise: promiseDuplicate,
+              resolve: promiseDupResolve,
+              reject: promiseDupReject
             }
+            const modal = document.getElementById("modal-duplicate-actions")
+
+            const buttons = [
+              modal.querySelector('.button.replace'),
+              modal.querySelector('.button.rename'),
+              modal.querySelector('span.close'),
+            ]
+
+            const actions = [
+              'replace',
+              'rename',
+              'close'
+            ]
+
+            openModal(checkedDuplicates.resolve, modal, buttons, actions)
+
+            const {
+              action
+            } = await checkedDuplicates.promise
+            if (action == 'close') {
+              close()
+            } else {
+              formData.append('action', action)
+              const response = await myFetch()
+              if (response.status == 200) {
+                const {
+                  newFolder,
+                  existingFolder
+                } = await response.json()
+                success(action, newFolder, existingFolder)
+              }
+            }
+
           }
-
         }
-
       }
       setUp()
     } catch (err) {
