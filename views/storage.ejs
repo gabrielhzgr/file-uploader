@@ -35,15 +35,15 @@
     <% } %>
   </main>
   <% if(locals.currentUser && locals.folder){ %>
-  <%- include('lib/openModal') %>
-  <%- include('lib/closeModal') %>
-  <%- include('lib/readEntryContents') %>
-  <%- include('lib/uploadItem') %>
   <%- include('handlers/changeHandler') %>
   <%- include('handlers/dropHandler') %>
   <%- include('handlers/dragOverHandler') %>
   <%- include('handlers/dragLeaveHandler') %>
   <%- include('handlers/createFolderHandler') %>
+  <%- include('lib/openModal') %>
+  <%- include('lib/closeModal') %>
+  <%- include('lib/readEntryContents') %>
+  <%- include('lib/uploadItem') %>
   <%- include('modals/createFolderModal') %>
   <%- include('modals/duplicateActionsModal') %>
   <% } %>

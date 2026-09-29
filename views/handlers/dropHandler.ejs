@@ -1,6 +1,8 @@
 <script>
   async function dropHandler(e) {
     try {
+      console.log('dropped');
+
       e.preventDefault();
       if (e.currentTarget.classList.contains("drop-zone")) {
         e.stopPropagation();

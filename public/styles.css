@@ -33,15 +33,15 @@ html {
 body {
   display: flex;
   flex-direction: column;
-  gap: 13px;
+  gap: 10px;
   background-color: rgba(0, 0, 0, 0.584);
-  padding: 15px;
+  padding: 12px;
 }
 
 main {
   flex: 1;
   display: flex;
-  gap: 17px;
+  gap: 10px;
   justify-content: center;
 }
 
@@ -151,13 +151,27 @@ label:has(input:required) > h2::after {
 }
 
 .flash {
+  flex-direction: column;
   height: 100px;
   animation: flash 2s forwards;
   display: flex;
-  justify-content: center;
-  align-items: center;
   box-shadow: inset 0px 0px 2px 1px;
   position: relative;
+  padding: 7px;
+  scrollbar-color: transparent;
+  border-radius: var(--border-radius);
+}
+
+.flash::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.flash h2 {
+  text-align: center;
+}
+
+.flash > * {
+  width: 1;
 }
 
 .success {
@@ -172,7 +186,7 @@ label:has(input:required) > h2::after {
 
 .progress {
   overflow-y: scroll;
-  background-color: var(grey);
+  background-color: var(--main-bg);
 }
 
 span.close {
@@ -197,7 +211,7 @@ main > .drop-zone {
   border-radius: var(--border-radius);
   background-color: var(--main-bg);
   position: relative;
-  outline: 5px solid var(--main-bg);
+  outline: 1px solid var(--main-bg);
   border-style: dashed;
   border-color: var(--main-color);
   border-width: medium;
@@ -235,19 +249,22 @@ aside {
   background-color: var(--main-bg);
   backdrop-filter: blur(var(--blur));
   border-radius: var(--border-radius);
-  outline: 5px solid var(--main-bg);
 }
 
 aside .button {
   width: 100%;
 }
+
 .content {
   position: relative;
   display: flex;
   gap: 5px;
   align-items: center;
-  border-bottom: thin solid grey;
   height: 30px;
+}
+
+.content:not(:last-child) {
+  border-bottom: thin solid grey;
 }
 
 .content > * {

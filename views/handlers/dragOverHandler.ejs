@@ -1,5 +1,7 @@
 <script>
   function dragOverHandler(e) {
+    console.log('dragged');
+
     e.preventDefault()
     if (e.currentTarget.classList.contains('drop-zone')) {
       e.stopPropagation()

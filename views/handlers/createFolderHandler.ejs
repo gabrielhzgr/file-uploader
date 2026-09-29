@@ -49,6 +49,9 @@
         childElement.querySelector(".info").innerText = 'New';
         childElement.querySelector(".name").innerText = newFolder.name;
         childElement.classList.add("uploaded");
+        childElement.ondragover = (e) => dragOverHandler(e)
+        childElement.ondrop = (e) => dropHandler(e)
+        childElement.ondragleave = (e) => dragLeaveHandler(e)
 
         if (action == "replace") {
           const replacedFolder = document.getElementById(existingFolder.id)
@@ -135,7 +138,6 @@
                 success(action, newFolder, existingFolder)
               }
             }
-
           }
         }
       }

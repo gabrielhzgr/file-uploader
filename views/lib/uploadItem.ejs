@@ -16,16 +16,26 @@
           isParentMain = false
           parentElement = document.querySelector('.flash.progress')
           if (!parentElement) {
+
             parentElement = Object.assign(document.createElement('div'), {
               className: 'flash progress'
             })
+            parentElement.append(Object.assign(document.createElement('h2'), {
+              innerText: `Uploading to ${document.getElementById(parentId).querySelector('.name').innerText}`
+            }, Object.assign(document.createElement('span'), {
+              className: 'close',
+              innerText: 'X'
+            })))
             document.body.prepend(parentElement)
           }
         }
 
         childElement = document.createElement('div')
         childElement.innerHTML = `
-        <div class="content loading ${isDirectory ? 'folder' : content.type.startsWith('image') ? 'image' : content.type.startsWith('video') ? 'video' : 'other'} ">
+        <div class="content loading 
+        ${isDirectory ? 'folder' : 
+        content.type.startsWith('image') ? 'image' 
+        : content.type.startsWith('video') ? 'video' : 'other'} ${isDirectory ? 'drop-zone': ''}">
         <span class="material-symbols-outlined icon">
           ${isDirectory ? 'folder' : content.type.startsWith('image') ? 'image' : content.type.startsWith('video') ? 'theaters' : 'article'} 
         </span>
@@ -78,9 +88,10 @@
 
           async function fetchFile(action) {
             try {
+              let response
               if (action == 'replace' || action == 'rename') {
                 formData.append('action', action)
-                const response = await myFetch(url, formData)
+                response = await myFetch(url, formData)
                 if (response.status !== 200) {
                   throw new Error("Error uploading file");
                   close(childElement)
@@ -92,18 +103,16 @@
                   success(action, newFile, existingFile)
                 }
               } else {
-                const response = await myFetch(url, formData)
+                response = await myFetch(url, formData)
                 if (response.status == 200) {
                   const {
                     newFile,
                     existingFile
                   } = await response.json()
                   success(action, newFile, existingFile)
-                  return response
-                } else {
-                  return response
                 }
               }
+              return response
             } catch (err) {
               throw err
             }
@@ -112,6 +121,7 @@
           async function upload() {
             try {
               if (checkedDuplicates.found) {
+                console.log(`Duplicates found while uploading file ${name}`);
                 const {
                   action
                 } = await checkedDuplicates.promise
@@ -135,14 +145,14 @@
                       ],
                       actions = ['replace', 'rename', 'close']
                     )
-                    const {
-                      action
-                    } = await checkedDuplicates.promise
-                    if (action == 'close') {
-                      close()
-                    } else {
-                      await fetchFile(action)
-                    }
+                  }
+                  const {
+                    action
+                  } = await checkedDuplicates.promise
+                  if (action == 'close') {
+                    close()
+                  } else {
+                    await fetchFile(action)
                   }
                 }
               }
@@ -170,9 +180,13 @@
             childElement.classList.remove('loading')
             childElement.setAttribute('id', newItem.id)
             childElement.querySelector('.info').innerText = 'Uploaded'
-            childElement.querySelector('.name').innerText = newItem.name
             childElement.classList.add('uploaded')
             childElement.onclick = (e) => window.location.href = `/storage/${newItem.id}/`
+            childElement.ondragover = (e) => dragOverHandler(e)
+            childElement.ondrop = (e) => dropHandler(e)
+            childElement.ondragleave = (e) => dragLeaveHandler(e)
+
+            childElement.querySelector
 
             if (isParentMain && action == 'replace') {
               const replaced = document.getElementById(existing.id)
@@ -200,7 +214,9 @@
                 try {
                   console.log(`fired file ${file.name} promise in folder ${name}`);
                   const response = await myFetch(url, formData)
-                  childElement.querySelector('.info').innerText = `Uploaded ${++uploadedCount} of ${totalCount}`
+                  uploadedCount += 1
+                  console.log(`uploaded count ${uploadedCount} for folder ${name}`);
+                  childElement.querySelector('.info').innerText = `Uploaded ${uploadedCount} of ${totalCount}`
                   resolve()
                 } catch (err) {
                   throw err
@@ -213,23 +229,34 @@
           async function fetchFolder(action, formData) {
             try {
               const url = `/storage/${parentId}/create/folder`
-              if (action == 'replace' || action == 'rename') {
+              let response
+              if (action) {
                 formData.append('action', action)
-                const response = await myFetch(url, formData)
+                response = await myFetch(url, formData)
                 if (response.status !== 200) {
-                  throw new Error("Error uploading file");
-                  close(childElement)
+                  throw new Error("Error uploading folder");
                 } else {
-                  return response
+                  const {
+                    newFolder,
+                    existingFolder
+                  } = await response.json()
+                  folders.splice(0, 1)
+                  await uploadFolderContents()
+                  success(action, newFolder, existingFolder)
                 }
               } else {
-                const response = await myFetch(url, formData)
+                response = await myFetch(url, formData)
                 if (response.status == 200) {
-                  return response
-                } else {
-                  return response
+                  const {
+                    newFolder,
+                    existingFolder
+                  } = await response.json()
+                  folders.splice(0, 1)
+                  await uploadFolderContents()
+                  success(action, newFolder, existingFolder)
                 }
               }
+              return response
             } catch (err) {
               throw err
             }
@@ -248,14 +275,7 @@
                 if (action == 'close') {
                   close()
                 } else {
-                  const response = await fetchFolder(action, formData)
-                  const {
-                    newFolder,
-                    existingFolder
-                  } = await response.json()
-                  folders.splice(0, 1)
-                  await uploadFolderContents()
-                  success(action, newFolder, existingFolder)
+                  await fetchFolder(action, formData)
                 }
               } else {
                 const response = await fetchFolder(action = null, formData)
@@ -272,30 +292,15 @@
                       ],
                       actions = ['replace', 'rename', 'close']
                     )
-                    const {
-                      action
-                    } = await checkedDuplicates.promise
-                    if (action == 'close') {
-                      close()
-                    } else {
-                      const response = await fetchFolder(action, formData)
-                      const {
-                        newFolder,
-                        existingFolder
-                      } = await response.json()
-                      folders.splice(0, 1)
-                      await uploadFolderContents()
-                      success(action, newFolder, existingFolder)
-                    }
                   }
-                } else {
                   const {
-                    newFolder,
-                    existingFolder
-                  } = await response.json()
-                  folders.splice(0, 1)
-                  await uploadFolderContents()
-                  success(action, newFolder, existingFolder)
+                    action
+                  } = await checkedDuplicates.promise
+                  if (action == 'close') {
+                    close()
+                  } else {
+                    await fetchFolder(action, formData)
+                  }
                 }
               }
             } catch (err) {
@@ -304,6 +309,9 @@
           }
           await upload()
         } catch (err) {
+          console.log('eror');
+
+          close(childElement)
           throw err
         }
       }
@@ -316,7 +324,7 @@
         await uploadFile(parentId, name, content, checkedDuplicates)
       }
     } catch (err) {
-      alert(err);
+      console.log(err);
     }
   }
 </script>

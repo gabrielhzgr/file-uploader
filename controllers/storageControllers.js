@@ -66,7 +66,10 @@ async function createFolder(req, res, next) {
     } else if (action == "replace") {
       const existingFolder = await prisma.folder.findFirst({
         where: { parentFolderId: folderId, name },
-        include: { subFolders: true, files: true },
+        include: {
+          subFolders: true,
+          files: true,
+        },
       });
       if (existingFolder) {
         await deleteFolder(existingFolder);
@@ -81,10 +84,19 @@ async function createFolder(req, res, next) {
 
 async function deleteFolder(folder) {
   try {
+    if (!("subFolders" in folder && "files" in folder)) {
+      folder = await prisma.folder.findFirst({
+        where: { id: folder.id },
+        include: {
+          subFolders: true,
+          files: true,
+        },
+      });
+    }
     for (const file of folder.files) {
       await deleteFile(file);
     }
-    for (const subfolder of folder.subFolders) {
+    for (let subfolder of folder.subFolders) {
       await deleteFolder(subfolder);
     }
     await prisma.folder.delete({ where: { id: folder.id } });
