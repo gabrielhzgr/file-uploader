@@ -26,16 +26,20 @@
               className: 'close',
               innerText: 'X'
             })))
+
+            parentElement.querySelector('span.close').addEventListener('click', (e) => {
+              parentElement.remove()
+            })
             document.body.prepend(parentElement)
           }
         }
 
         childElement = document.createElement('div')
         childElement.innerHTML = `
-        <div class="content loading 
+        <div class="content loading ${isDirectory ? 'drop-zone': 'file'}
         ${isDirectory ? 'folder' : 
         content.type.startsWith('image') ? 'image' 
-        : content.type.startsWith('video') ? 'video' : 'other'} ${isDirectory ? 'drop-zone': ''}">
+        : content.type.startsWith('video') ? 'video' : 'other'} ">
         <span class="material-symbols-outlined icon">
           ${isDirectory ? 'folder' : content.type.startsWith('image') ? 'image' : content.type.startsWith('video') ? 'theaters' : 'article'} 
         </span>
@@ -48,9 +52,11 @@
       }
 
 
-
       function close(element) {
+        console.log(element);
         element.classList.add('removed')
+        element.classList.remove('loading')
+
         setTimeout(() => {
           element.remove()
         }, 3000)
@@ -126,7 +132,7 @@
                   action
                 } = await checkedDuplicates.promise
                 if (action == 'close') {
-                  close()
+                  close(childElement)
                 } else {
                   await fetchFile(action)
                 }
@@ -150,7 +156,7 @@
                     action
                   } = await checkedDuplicates.promise
                   if (action == 'close') {
-                    close()
+                    close(childElement)
                   } else {
                     await fetchFile(action)
                   }
@@ -273,7 +279,7 @@
                   action
                 } = await checkedDuplicates.promise
                 if (action == 'close') {
-                  close()
+                  close(childElement)
                 } else {
                   await fetchFolder(action, formData)
                 }
@@ -297,7 +303,7 @@
                     action
                   } = await checkedDuplicates.promise
                   if (action == 'close') {
-                    close()
+                    close(childElement)
                   } else {
                     await fetchFolder(action, formData)
                   }
@@ -309,9 +315,6 @@
           }
           await upload()
         } catch (err) {
-          console.log('eror');
-
-          close(childElement)
           throw err
         }
       }
@@ -324,6 +327,7 @@
         await uploadFile(parentId, name, content, checkedDuplicates)
       }
     } catch (err) {
+      close(childElement)
       console.log(err);
     }
   }

@@ -7,6 +7,7 @@
   <span class="name">
     <%= content.name %>
   </span>
+  <%- include('floatingMenu') %>
 </div>
 <% }else if(content.type.startsWith('image')){%>
 <div id="<%= content.id %>" class="content file image  uploaded">
@@ -16,6 +17,7 @@
   <span class="name">
     <%= content.name %>
   </span>
+  <%- include('floatingMenu') %>
 </div>
 <% }else if(content.type.startsWith('video')){ %>
 <div id="<%= content.id %>" class="content file video uploaded">
@@ -25,6 +27,7 @@
   <span class="name">
     <%= content.name %>
   </span>
+  <%- include('floatingMenu') %>
 </div>
 <% }else{ %>
 <div id="<%= content.id %>" class="content file other uploaded" onclick="window.location.href = `/storage/<%= content.id %>/`">
@@ -34,5 +37,6 @@
   <span class="name">
     <%= content.name %>
   </span>
+  <%- include('floatingMenu') %>
 </div>
 <% } %>

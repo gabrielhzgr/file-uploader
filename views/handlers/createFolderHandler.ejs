@@ -48,7 +48,7 @@
         childElement.onclick = (e) => (window.location = `/storage/${newFolder.id}/`);
         childElement.querySelector(".info").innerText = 'New';
         childElement.querySelector(".name").innerText = newFolder.name;
-        childElement.classList.add("uploaded");
+        childElement.classList.add("new");
         childElement.ondragover = (e) => dragOverHandler(e)
         childElement.ondrop = (e) => dropHandler(e)
         childElement.ondragleave = (e) => dragLeaveHandler(e)
@@ -126,7 +126,7 @@
               action
             } = await checkedDuplicates.promise
             if (action == 'close') {
-              close()
+              close(childElement)
             } else {
               formData.append('action', action)
               const response = await myFetch()

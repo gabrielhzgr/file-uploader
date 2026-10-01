@@ -1,0 +1,23 @@
+<script>
+  function toggleMenu(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    const menu = e.target.closest('.floating-menu')
+    console.log(menu);
+    const alreadyActive = document.querySelector('.options.active')
+    if (alreadyActive) {
+      alreadyActive.classList.remove('active')
+    }
+    menu.querySelector('.options').classList.toggle('active')
+    e.target.classList.toggle('active')
+  }
+</script>
+<script>
+  window.addEventListener('click', (e) => {
+    let activeOptions = document.querySelector('.options.active')
+    if (activeOptions) {
+      activeOptions.classList.remove('active')
+      activeOptions.closest('.floating-menu').querySelector('.icon.more').classList.toggle('active')
+    }
+  })
+</script>

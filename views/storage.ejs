@@ -8,16 +8,14 @@
     <% if(locals.currentUser && locals.folder) {%>
     <aside>
       <input type="file" multiple onchange="changeHandler(event)" id="input-upload-file" hidden>
-      <button class="button">Upload folder</button>
-      <!--TODO: onclick: open select folder, use uploadItem to upload it-->
       <button class="button" onclick="document.querySelector('#input-upload-file').click()">Upload files</button>
       <button class="button" onclick="createFolderHandler(event)">New Folder</button>
     </aside>
     <% } else{ %>
     <aside>
-      <button class="button" id="upload-folder-btn" title="Log in to upload a foler" disabled>Upload folder</label>
-        <button class="button" id="upload-file-btn" title="Log in to upload a file" disabled>Upload file</label>
-          <button class="button" id="new-folder" title="Log in to create a Folder" disabled>New Folder</label>
+      <button class="button" id="upload-folder-btn" title="Log in to upload a foler" disabled>Upload folder</button>
+      <button class="button" id="upload-file-btn" title="Log in to upload files" disabled>Upload file</button>
+      <button class="button" id="new-folder" title="Log in to create a Folder" disabled>New Folder</button>
     </aside>
     <% } %>
     <% if(locals.currentUser && locals.folder){ %>
@@ -42,6 +40,7 @@
   <%- include('handlers/createFolderHandler') %>
   <%- include('lib/openModal') %>
   <%- include('lib/closeModal') %>
+  <%- include('lib/menu') %>
   <%- include('lib/readEntryContents') %>
   <%- include('lib/uploadItem') %>
   <%- include('modals/createFolderModal') %>

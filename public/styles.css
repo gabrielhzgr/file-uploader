@@ -207,7 +207,6 @@ main > .drop-zone {
   display: flex;
   border: thin dotted white;
   padding: 10px;
-  background-color: whitesmoke;
   border-radius: var(--border-radius);
   background-color: var(--main-bg);
   position: relative;
@@ -237,10 +236,6 @@ main > .drop-zone {
   color: rgba(128, 128, 128, 0.746);
 }
 
-section.contents > .content:hover {
-  background-color: var(--third-color);
-}
-
 aside {
   display: flex;
   padding: 15px;
@@ -261,6 +256,63 @@ aside .button {
   gap: 5px;
   align-items: center;
   height: 30px;
+  width: 100%;
+}
+
+.content .floating-menu {
+  position: absolute;
+  right: 0px;
+  display: flex;
+  flex-direction: column;
+  align-content: flex-end;
+  align-items: flex-end;
+  right: 0px;
+}
+
+.floating-menu .options {
+  height: 0px;
+  overflow: hidden;
+}
+
+.options div {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.floating-menu .options.active {
+  height: auto;
+  overflow: visible;
+  background-color: var(--main-bg);
+  box-shadow: -3px -3px 4px grey;
+  padding: 7px;
+  z-index: 1;
+  border-radius: var(--border-radius);
+  color: black;
+}
+
+.floating-menu .options.active div:hover {
+  color: var(--main-color);
+  cursor: pointer;
+}
+
+.floating-menu .options.active div:not(:last-child) {
+  border-bottom: thin solid grey;
+}
+
+.floating-menu > .more {
+  border-radius: 100%;
+  padding: 3px;
+  color: black;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  text-align: end;
+}
+
+.floating-menu > .icon.more:hover,
+.icon.more.active {
+  background-color: grey;
+  color: black;
 }
 
 .content:not(:last-child) {
@@ -294,6 +346,16 @@ aside .button {
   }
 }
 
+@keyframes new {
+  from {
+    height: 0px;
+  }
+
+  to {
+    height: 35px;
+  }
+}
+
 .content > span.icon {
   line-height: inherit;
   vertical-align: bottom;
@@ -307,7 +369,7 @@ aside .button {
   color: tan;
 }
 
-.image > .icon {
+.content.image > .icon {
   color: violet;
 }
 
@@ -318,7 +380,7 @@ aside .button {
 .other > .icon {
   color: grey;
 }
-.content.folder.uploaded:hover * {
+.content.folder:hover > * {
   color: var(--main-color);
 }
 
@@ -328,26 +390,29 @@ aside .button {
 
 .content.removed {
   text-decoration: line-through;
-  animation: removed;
+  animation-name: removed;
   animation-duration: 2.5s;
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
-  overflow: hidden;
+
   text-decoration: line-through red;
   color: red;
 }
 
 .content.loading {
+  height: 0;
   cursor: not-allowed;
-  animation: loading;
-  animation-duration: 2.5s;
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
+  animation:
+    loading 2.5s infinite alternate,
+    new 2.5s 1 forwards;
 }
 
-.content span.info {
-  position: absolute;
-  right: 0;
+.content.new {
+  height: 0;
+  animation-name: new;
+  animation-duration: 2.5s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
 }
 
 div.modal.active {

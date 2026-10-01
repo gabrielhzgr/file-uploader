@@ -1,12 +1,7 @@
 <script>
-  async function changeHandler(e) {
-    e.preventDefault()
-    await traverseFiles(e)
-  }
-</script>
-<script>
-  async function traverseFiles(e) {
+  async function changeFilesHandler(e) {
     try {
+      e.preventDefault()
       const files = e.target.files
       const parentId = "<%=locals.folder.id%>";
 
@@ -36,5 +31,12 @@
     } catch (err) {
       throw err
     }
+  }
+</script>
+<script>
+  async function changeFolderHandler(e) {
+    e.preventDefault()
+    console.log(e.dataTransfer.items);
+
   }
 </script>
