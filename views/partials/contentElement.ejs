@@ -1,0 +1,47 @@
+<script>
+  function contentElement(placeHolder, content, name, isDirectory) {
+
+    const classes = `${isDirectory ? 'drop-zone folder': `file ${content.type.startsWith('image') ? 'image' : content.type.startsWith('video') ? 'video' : 'other'}`}`
+    const icon = `${isDirectory ? 'folder' : content.type.startsWith('image') ? 'image' : content.type.startsWith('video') ? 'theaters' : 'article'}`
+
+    let childElement = document.createElement('div')
+    childElement.innerHTML = `
+        <div class="content loading ${classes}">
+            <span class="material-symbols-outlined icon">
+            ${icon}
+            </span>
+            <span class="name">${name}</span>
+            
+            <div class="floating-menu">
+                <div class="additional-info">
+                    <span class="info">${placeHolder}</span>
+                    <span class="material-symbols-outlined icon more" onclick="toggleMenu.call(this, event)">
+                        more_vert
+                    </span>
+                </div>
+                <div class="options">
+                    <div class="details">
+                        <span class="material-symbols-outlined icon">
+                            info
+                        </span>
+                        <span>Details</span>
+                    </div>
+                    <div class="download">
+                        <span class="material-symbols-outlined icon">
+                            download
+                        </span>
+                        <span>Download</span>
+                    </div>
+                    <div class="delete">
+                        <span class="material-symbols-outlined icon">
+                            delete
+                        </span>
+                        <span>Delete</span>
+                    </div>
+                </div>
+            </div>
+        </div>`
+    childElement = childElement.firstElementChild
+    return childElement
+  }
+</script>

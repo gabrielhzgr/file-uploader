@@ -1,6 +1,5 @@
 <script>
   async function createFolderHandler(e) {
-    //TODO: Test all this refactoring didnt break
     try {
       e.preventDefault();
       let childElement, dropZone;
@@ -9,19 +8,6 @@
       const modalFolder = document.getElementById('modal-folder')
 
       function setUp() {
-        childElement = document.createElement("div");
-        childElement.innerHTML = `<div class="content folder drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)" ">
-          <span class="material-symbols-outlined icon">
-            folder
-          </span>
-          <span class="name">
-          </span>
-          <span class="info">
-          </span>
-        </div>`;
-        childElement = childElement.firstElementChild;
-        dropZone = document.querySelector(".main.drop-zone");
-
         promiseCreate = new Promise((resolve, reject) => {
           promiseCreateResolve = resolve
           promiseCreateReject = reject
@@ -43,12 +29,12 @@
       }
 
       function success(action, newFolder, existingFolder) {
-        dropZone.append(childElement);
         childElement.setAttribute("id", newFolder.id);
         childElement.onclick = (e) => (window.location = `/storage/${newFolder.id}/`);
         childElement.querySelector(".info").innerText = 'New';
         childElement.querySelector(".name").innerText = newFolder.name;
         childElement.classList.add("new");
+        childElement.classList.remove('loading')
         childElement.ondragover = (e) => dragOverHandler(e)
         childElement.ondrop = (e) => dropHandler(e)
         childElement.ondragleave = (e) => dragLeaveHandler(e)
@@ -85,9 +71,14 @@
           action
         } = await create.promise
         if (action == 'create') {
+          let name = modalFolder.querySelector('input.name').value
           formData = new FormData()
-          formData.append("name", modalFolder.querySelector('input.name').value);
+          formData.append("name", name);
           formData.append("id", crypto.randomUUID())
+          childElement = contentElement('Creating', {
+            type: 'folder'
+          }, name, true)
+          document.querySelector(".main.drop-zone").append(childElement)
           const response = await myFetch();
           if (response.status == 200) {
             const {

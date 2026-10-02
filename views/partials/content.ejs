@@ -17,6 +17,7 @@
   <span class="name">
     <%= content.name %>
   </span>
+
   <%- include('floatingMenu') %>
 </div>
 <% }else if(content.type.startsWith('video')){ %>
@@ -30,7 +31,7 @@
   <%- include('floatingMenu') %>
 </div>
 <% }else{ %>
-<div id="<%= content.id %>" class="content file other uploaded" onclick="window.location.href = `/storage/<%= content.id %>/`">
+<div id="<%= content.id %>" class="content file other uploaded">
   <span class="material-symbols-outlined icon">
     article
   </span>

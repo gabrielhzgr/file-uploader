@@ -40,6 +40,13 @@ storageRouter.post(
   storageControllers.createFolders,
 );
 
+storageRouter.get(
+  "/:folderId/download/file/:fileId",
+  isAuthenticated,
+  isOwner,
+  storageControllers.downloadFile,
+);
+
 //TODO: Add routes renameFile, renameFolder, downloadFile, donwloadFolder,
 // more info File, more info Folder, deleteFile, deleteFolder
 

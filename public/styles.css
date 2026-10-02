@@ -260,8 +260,7 @@ aside .button {
 }
 
 .content .floating-menu {
-  position: absolute;
-  right: 0px;
+  margin-left: auto;
   display: flex;
   flex-direction: column;
   align-content: flex-end;
@@ -299,7 +298,13 @@ aside .button {
   border-bottom: thin solid grey;
 }
 
-.floating-menu > .more {
+.floating-menu .additional-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.floating-menu .more {
   border-radius: 100%;
   padding: 3px;
   color: black;
@@ -309,7 +314,7 @@ aside .button {
   text-align: end;
 }
 
-.floating-menu > .icon.more:hover,
+.floating-menu .icon.more:hover,
 .icon.more.active {
   background-color: grey;
   color: black;
@@ -380,11 +385,12 @@ aside .button {
 .other > .icon {
   color: grey;
 }
-.content.folder:hover > * {
+.content.folder:not(:has(.options:hover)):hover > * {
   color: var(--main-color);
 }
 
-.content.uploaded span.info {
+.content.uploaded span.info,
+.content.new span.info {
   color: var(--main-color);
 }
 

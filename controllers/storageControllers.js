@@ -197,7 +197,7 @@ async function uploadFile(req, res, next) {
       const startUploadFile = performance.now();
       await supabase.storage
         .from(user.id)
-        .upload(path.join(newFile.id, file.originalname), file.buffer, {
+        .upload(path.join(newFile.id, newFile.name), file.buffer, {
           contentType: file.mimetype,
         });
       const endUploadFile = performance.now();
@@ -218,6 +218,25 @@ async function uploadFile(req, res, next) {
     next(err);
   }
 }
+
+async function downloadFile(req, res, next) {
+  try {
+    const { user } = req;
+    const { folderId, fileId } = req.params;
+    const { name } = req.query;
+    const { data, error } = await supabase.storage
+      .from(user.id)
+      .download(`${fileId}/${name}`);
+
+    res.type(data.type);
+    data.arrayBuffer().then((buf) => {
+      //res.setHeader("Content-Disposition", `filename=${name}`);
+      res.send(Buffer.from(buf));
+    });
+  } catch (err) {
+    throw err;
+  }
+}
 //TODO: Add controllers renameFile,renameFolder, downloadFile, donwloadFolder,
 // more info File, more info Folder, delete
 
@@ -227,4 +246,5 @@ module.exports = {
   uploadFile,
   createFolder,
   createFolders,
+  downloadFile,
 };

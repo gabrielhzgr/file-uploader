@@ -33,21 +33,19 @@
             document.body.prepend(parentElement)
           }
         }
+        let placeHolder = `${isDirectory ? 
+          `Uploaded 0 of ${
+            content.fileObjects.length
+          }`
+          : 'Uploading'}`
 
-        childElement = document.createElement('div')
-        childElement.innerHTML = `
-        <div class="content loading ${isDirectory ? 'drop-zone': 'file'}
-        ${isDirectory ? 'folder' : 
-        content.type.startsWith('image') ? 'image' 
-        : content.type.startsWith('video') ? 'video' : 'other'} ">
-        <span class="material-symbols-outlined icon">
-          ${isDirectory ? 'folder' : content.type.startsWith('image') ? 'image' : content.type.startsWith('video') ? 'theaters' : 'article'} 
-        </span>
-        <span class="name">${name}</span>
-        <span class="info">${isDirectory? `Uploaded 0 of ${content.fileObjects.length}`: 'Uploading'}</span>
-        </div>`
+        childElement = contentElement(placeHolder,
+          isDirectory ? {
+            type: 'folder'
+          } : content,
+          name,
+          isDirectory)
 
-        childElement = childElement.firstElementChild
         parentElement.append(childElement)
       }
 
@@ -72,20 +70,22 @@
       async function uploadFile(parentId, name, content, checkedDuplicates) {
         try {
           console.log(`Uploading file ${name}`);
-
           const url = `/storage/${parentId}/upload/file`
           const formData = new FormData()
           formData.append('file', content)
 
-          function success(action, newItem, existing) {
+          function success(action, newFile, existingFile) {
             childElement.classList.remove('loading')
-            childElement.setAttribute('id', newItem.id)
+            childElement.setAttribute('id', newFile.id)
             childElement.querySelector('.info').innerText = 'Uploaded'
-            childElement.querySelector('.name').innerText = newItem.name
+            childElement.querySelector('.name').innerText = newFile.name
             childElement.classList.add('uploaded')
+            childElement.querySelector('.download').onclick = (e) => {
+              download(e, parentId, newFile.id, 'file', name)
+            }
 
             if (isParentMain && action == 'replace') {
-              const replaced = document.getElementById(existing.id)
+              const replaced = document.getElementById(existingFile.id)
               if (replaced) {
                 close(replaced)
               }
@@ -127,7 +127,12 @@
           async function upload() {
             try {
               if (checkedDuplicates.found) {
-                console.log(`Duplicates found while uploading file ${name}`);
+                console.log(`
+        Duplicates found
+        while uploading file $ {
+          name
+        }
+        `);
                 const {
                   action
                 } = await checkedDuplicates.promise
@@ -182,15 +187,18 @@
             fileObjects
           } = content
 
-          function success(action, newItem, existing) {
+          function success(action, newFolder, existingFolder) {
             childElement.classList.remove('loading')
-            childElement.setAttribute('id', newItem.id)
+            childElement.setAttribute('id', newFolder.id)
             childElement.querySelector('.info').innerText = 'Uploaded'
             childElement.classList.add('uploaded')
-            childElement.onclick = (e) => window.location.href = `/storage/${newItem.id}/`
+            childElement.onclick = (e) => window.location.href = `/storage/${newFolder.id}/`
             childElement.ondragover = (e) => dragOverHandler(e)
             childElement.ondrop = (e) => dropHandler(e)
             childElement.ondragleave = (e) => dragLeaveHandler(e)
+            childElement.querySelector('.download').onclick = (e) => {
+              download(e, parentId, newFolder.id, 'folder', name)
+            }
 
             childElement.querySelector
 
@@ -247,6 +255,7 @@
                     existingFolder
                   } = await response.json()
                   folders.splice(0, 1)
+                  childElement.querySelector('.name').innerText = newFolder.name
                   await uploadFolderContents()
                   success(action, newFolder, existingFolder)
                 }

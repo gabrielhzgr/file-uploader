@@ -1,15 +1,25 @@
 <script>
+  function onMouseOver(e) {}
+</script>
+
+<script>
   function toggleMenu(e) {
+    console.log('toggle');
+
     e.preventDefault()
     e.stopPropagation()
+    const icon = e.target
     const menu = e.target.closest('.floating-menu')
-    console.log(menu);
+    const options = menu.querySelector('.options')
+
     const alreadyActive = document.querySelector('.options.active')
-    if (alreadyActive) {
+    if (alreadyActive && alreadyActive !== options) {
       alreadyActive.classList.remove('active')
+      alreadyActive.closest('.floating-menu').querySelector('.icon.more').classList.toggle('active')
     }
-    menu.querySelector('.options').classList.toggle('active')
-    e.target.classList.toggle('active')
+
+    icon.classList.toggle('active')
+    options.classList.toggle('active')
   }
 </script>
 <script>

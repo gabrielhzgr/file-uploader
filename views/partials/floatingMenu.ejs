@@ -9,7 +9,7 @@
       </span>
       <span>Details</span>
     </div>
-    <div class="download">
+    <div class="download" onclick="download(event,'<%=folder.id%>', '<%=content.id%>', `<%=content.type == 'folder' ? 'folder' : 'file'%>`, `<%= content.name %>`)">
       <span class="material-symbols-outlined icon">
         download
       </span>
