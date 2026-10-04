@@ -54,6 +54,20 @@ storageRouter.get(
   storageControllers.downloadFolder,
 );
 
+storageRouter.delete(
+  "/:folderId/delete/file/:id",
+  isAuthenticated,
+  isOwner,
+  storageControllers.deleteFile,
+);
+
+storageRouter.delete(
+  "/:folderId/delete/folder/:id",
+  isAuthenticated,
+  isOwner,
+  storageControllers.deleteFolder,
+);
+
 //TODO: Add routes renameFile, renameFolder, downloadFile, donwloadFolder,
 // more info File, more info Folder, deleteFile, deleteFolder
 

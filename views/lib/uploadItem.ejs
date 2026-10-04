@@ -45,7 +45,8 @@
           } : content,
           name,
           isDirectory)
-
+        childElement.classList.add('new')
+        childElement.classList.add('loading')
         parentElement.append(childElement)
       }
 
@@ -76,12 +77,16 @@
 
           function success(action, newFile, existingFile) {
             childElement.classList.remove('loading')
+            childElement.classList.remove('new')
             childElement.setAttribute('id', newFile.id)
             childElement.querySelector('.info').innerText = 'Uploaded'
             childElement.querySelector('.name').innerText = newFile.name
             childElement.classList.add('uploaded')
             childElement.querySelector('.download').onclick = (e) => {
               download(e, parentId, newFile.id, 'file', name)
+            }
+            childElement.querySelector('.delete').onclick = (e) => {
+              deleteItem(e, parentId, newFile.id, 'file')
             }
 
             if (isParentMain && action == 'replace') {
@@ -189,6 +194,7 @@
 
           function success(action, newFolder, existingFolder) {
             childElement.classList.remove('loading')
+            childElement.classList.remove('new')
             childElement.setAttribute('id', newFolder.id)
             childElement.querySelector('.info').innerText = 'Uploaded'
             childElement.classList.add('uploaded')
@@ -198,6 +204,9 @@
             childElement.ondragleave = (e) => dragLeaveHandler(e)
             childElement.querySelector('.download').onclick = (e) => {
               download(e, parentId, newFolder.id, 'folder', name)
+            }
+            childElement.querySelector('.delete').onclick = (e) => {
+              deleteItem(e, parentId, newFolder.id, 'folder')
             }
 
             childElement.querySelector
@@ -336,7 +345,6 @@
         await uploadFile(parentId, name, content, checkedDuplicates)
       }
     } catch (err) {
-      close(childElement)
       console.log(err);
     }
   }

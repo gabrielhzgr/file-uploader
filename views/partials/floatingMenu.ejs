@@ -1,7 +1,10 @@
 <div class="floating-menu">
-  <span class="material-symbols-outlined icon more" onclick="toggleMenu.call(this, event)">
-    more_vert
-  </span>
+  <div class="additional-info">
+    <span class="info"></span>
+    <span class="material-symbols-outlined icon more" onclick="toggleMenu.call(this, event)">
+      more_vert
+    </span>
+  </div>
   <div class="options">
     <div class="details">
       <span class="material-symbols-outlined icon">
@@ -15,7 +18,7 @@
       </span>
       <span>Download</span>
     </div>
-    <div class="delete">
+    <div class="delete" onclick="deleteItem(event,'<%=folder.id%>', '<%=content.id%>', `<%=content.type == 'folder' ? 'folder' : 'file'%>`)">
       <span class="material-symbols-outlined icon">
         delete
       </span>

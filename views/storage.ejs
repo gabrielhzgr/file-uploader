@@ -9,7 +9,7 @@
     <aside>
       <input type="file" multiple onchange="changeHandler(event)" id="input-upload-file" hidden>
       <button class="button" onclick="document.querySelector('#input-upload-file').click()">Upload files</button>
-      <button class="button" onclick="createFolderHandler(event)">New Folder</button>
+      <button class="button" onclick="const modal = document.getElementById('modal-folder');modal.classList.add('active');modal.focus()">New Folder</button>
     </aside>
     <% } else{ %>
     <aside>
@@ -44,6 +44,7 @@
   <%- include('lib/readEntryContents') %>
   <%- include('lib/uploadItem') %>
   <%- include('lib/download') %>
+  <%- include('lib/delete') %>
   <%- include('modals/createFolderModal') %>
   <%- include('modals/duplicateActionsModal') %>
   <%- include('partials/contentElement') %>

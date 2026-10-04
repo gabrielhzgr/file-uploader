@@ -312,6 +312,7 @@ aside .button {
   position: relative;
   display: flex;
   text-align: end;
+  cursor: inherit !important;
 }
 
 .floating-menu .icon.more:hover,
@@ -354,10 +355,12 @@ aside .button {
 @keyframes new {
   from {
     height: 0px;
+    overflow: hidden;
   }
 
   to {
     height: 35px;
+    overflow: visible;
   }
 }
 
@@ -389,36 +392,44 @@ aside .button {
   color: var(--main-color);
 }
 
-.content.uploaded span.info,
-.content.new span.info {
+.content.uploaded span.info {
   color: var(--main-color);
 }
 
+.content .span.info {
+  color: black;
+  flex: 3;
+}
+
 .content.removed {
-  text-decoration: line-through;
   animation-name: removed;
   animation-duration: 2.5s;
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
-
   text-decoration: line-through red;
-  color: red;
+  color: black !important;
+  overflow: hidden;
+}
+
+.content.removed span.info {
+  color: inherit;
 }
 
 .content.loading {
-  height: 0;
   cursor: not-allowed;
-  animation:
-    loading 2.5s infinite alternate,
-    new 2.5s 1 forwards;
+  animation-name: loading;
+  animation-duration: 2.5s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-fill-mode: forwards;
 }
 
 .content.new {
   height: 0;
-  animation-name: new;
-  animation-duration: 2.5s;
-  animation-iteration-count: 1;
-  animation-fill-mode: forwards;
+  animation-name: new, loading;
+  animation-duration: 2.5s, 2.5s;
+  animation-iteration-count: 1, infinite;
+  animation-fill-mode: forwards, normal;
 }
 
 div.modal.active {

@@ -79,7 +79,7 @@ async function createFolder(req, res, next) {
         },
       });
       if (existingFolder) {
-        await deleteFolder(existingFolder);
+        await removeFolder(existingFolder);
       }
       const newFolder = await prisma.folder.create({ data });
       return res.json({ newFolder, existingFolder });
@@ -89,7 +89,7 @@ async function createFolder(req, res, next) {
   }
 }
 
-async function deleteFolder(folder) {
+async function removeFolder(folder) {
   try {
     if (!("subFolders" in folder && "files" in folder)) {
       folder = await prisma.folder.findFirst({
@@ -101,10 +101,10 @@ async function deleteFolder(folder) {
       });
     }
     for (const file of folder.files) {
-      await deleteFile(file);
+      await removeFile(file);
     }
     for (let subfolder of folder.subFolders) {
-      await deleteFolder(subfolder);
+      await removeFolder(subfolder);
     }
     await prisma.folder.delete({ where: { id: folder.id } });
   } catch (err) {
@@ -112,7 +112,7 @@ async function deleteFolder(folder) {
   }
 }
 
-async function deleteFile(file, ownerId) {
+async function removeFile(file, ownerId) {
   const { id, name } = file;
   await prisma.file.delete({ where: { id } });
   await supabase.storage.from(ownerId).remove([`${id}/${name}`]);
@@ -187,11 +187,11 @@ async function uploadFile(req, res, next) {
         `It took ${(endFindFile - startFindFile) / 1000} seconds to find existing file`,
       );
       if (existingFile) {
-        const startDeleteFile = performance.now();
-        await deleteFile(existingFile, user.id);
-        const endDeleteFile = performance.now();
+        const startremoveFile = performance.now();
+        await removeFile(existingFile, user.id);
+        const endremoveFile = performance.now();
         console.log(
-          `It took ${(endDeleteFile - startDeleteFile) / 1000} seconds to delete existing file`,
+          `It took ${(endremoveFile - startremoveFile) / 1000} seconds to delete existing file`,
         );
       }
       const startCreateFile = performance.now();
@@ -308,6 +308,28 @@ async function makeTempFolder(tmpPath = "", folder, ownerId) {
   }
 }
 
+async function deleteFile(req, res, next) {
+  try {
+    const { id } = req.params;
+    const file = await prisma.file.findFirst({ where: { id } });
+    await removeFile(file, req.user.id);
+    res.json({ deletedFile: file });
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function deleteFolder(req, res, next) {
+  try {
+    const { id } = req.params;
+    const folder = await prisma.folder.findFirst({ where: { id } });
+    await removeFolder(folder, req.user.id);
+    res.json({ deletedFolder: folder });
+  } catch (err) {
+    throw err;
+  }
+}
+
 //TODO: Add controllers renameFile, renameFolder,
 // more info File, more info Folder
 
@@ -319,4 +341,6 @@ module.exports = {
   createFolders,
   downloadFile,
   downloadFolder,
+  deleteFile,
+  deleteFolder,
 };

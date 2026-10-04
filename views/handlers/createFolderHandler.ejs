@@ -2,139 +2,33 @@
   async function createFolderHandler(e) {
     try {
       e.preventDefault();
-      let childElement, dropZone;
-      let formData;
-      let create, promiseCreateResolve, promiseCreateReject, promiseCreate;
-      const modalFolder = document.getElementById('modal-folder')
+      let name = e.target.querySelector('input.name').value
+      let parentId = `<%=locals.folder.id %>`
+      let promiseDupResolve, promiseDupReject
+      const promiseDuplicate = new Promise((resolve, reject) => {
+        promiseDupResolve = resolve
+        promiseDupReject = reject
+      })
 
-      function setUp() {
-        promiseCreate = new Promise((resolve, reject) => {
-          promiseCreateResolve = resolve
-          promiseCreateReject = reject
-        })
-
-        create = {
-          promise: promiseCreate,
-          resolve: promiseCreateResolve,
-          reject: promiseCreateReject
-        }
-
-        const buttons = [modalFolder.querySelector('button[type="submit"]'),
-          modalFolder.querySelector('span.close')
-        ]
-        const actions = ['create', 'close']
-
-        openModal(create.resolve, modalFolder, buttons, actions)
-        createFolder()
+      const checkedDuplicates = {
+        promise: promiseDuplicate,
+        found: false,
+        resolve: promiseDupResolve,
+        reject: promiseDupReject
       }
+      closeModal.call(document.getElementById('modal-folder'), new Event("click"))
+      await uploadItem(true, parentId, name, {
+        fileObjects: [],
+        folders: [{
+          name,
+          id: crypto.randomUUID(),
+          parentId
+        }]
+      }, checkedDuplicates)
 
-      function success(action, newFolder, existingFolder) {
-        childElement.setAttribute("id", newFolder.id);
-        childElement.onclick = (e) => (window.location = `/storage/${newFolder.id}/`);
-        childElement.querySelector(".info").innerText = 'New';
-        childElement.querySelector(".name").innerText = newFolder.name;
-        childElement.classList.add("new");
-        childElement.classList.remove('loading')
-        childElement.ondragover = (e) => dragOverHandler(e)
-        childElement.ondrop = (e) => dropHandler(e)
-        childElement.ondragleave = (e) => dragLeaveHandler(e)
-
-        if (action == "replace") {
-          const replacedFolder = document.getElementById(existingFolder.id)
-          if (replacedFolder) {
-            close(replacedFolder)
-          }
-        }
-      }
-
-      function close(element) {
-        element.classList.add('removed')
-        setTimeout(() => {
-          element.remove()
-        }, 3000)
-      }
-
-      async function myFetch() {
-        try {
-          const response = await fetch(`/storage/<%=locals.folder.id %>/create/folder`, {
-            method: "POST",
-            body: formData,
-          });
-          return response;
-        } catch (err) {
-          throw err;
-        }
-      }
-
-      async function createFolder() {
-        const {
-          action
-        } = await create.promise
-        if (action == 'create') {
-          let name = modalFolder.querySelector('input.name').value
-          formData = new FormData()
-          formData.append("name", name);
-          formData.append("id", crypto.randomUUID())
-          childElement = contentElement('Creating', {
-            type: 'folder'
-          }, name, true)
-          document.querySelector(".main.drop-zone").append(childElement)
-          const response = await myFetch();
-          if (response.status == 200) {
-            const {
-              newFolder
-            } = await response.json();
-            success('create', newFolder, existingFolder = null);
-          } else {
-            let promiseDupResolve, promiseDupReject
-            const promiseDuplicate = new Promise((resolve, reject) => {
-              promiseDupResolve = resolve
-              promiseDupReject = reject
-            })
-
-            const checkedDuplicates = {
-              promise: promiseDuplicate,
-              resolve: promiseDupResolve,
-              reject: promiseDupReject
-            }
-            const modal = document.getElementById("modal-duplicate-actions")
-
-            const buttons = [
-              modal.querySelector('.button.replace'),
-              modal.querySelector('.button.rename'),
-              modal.querySelector('span.close'),
-            ]
-
-            const actions = [
-              'replace',
-              'rename',
-              'close'
-            ]
-
-            openModal(checkedDuplicates.resolve, modal, buttons, actions)
-
-            const {
-              action
-            } = await checkedDuplicates.promise
-            if (action == 'close') {
-              close(childElement)
-            } else {
-              formData.append('action', action)
-              const response = await myFetch()
-              if (response.status == 200) {
-                const {
-                  newFolder,
-                  existingFolder
-                } = await response.json()
-                success(action, newFolder, existingFolder)
-              }
-            }
-          }
-        }
-      }
-      setUp()
     } catch (err) {
-      alert(err);
+      console.log(err);
+
     }
   }
 </script>

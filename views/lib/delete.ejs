@@ -1,0 +1,22 @@
+<script>
+  async function deleteItem(e, folderId, contentId, type) {
+    e.preventDefault()
+    e.stopPropagation()
+    e.target.closest('.floating-menu').classList.remove('active')
+    const contentElement = e.target.closest('.content')
+    const infoElement = contentElement.querySelector('.info')
+    infoElement.innerText = 'deleting'
+    contentElement.classList.remove('uploaded')
+    contentElement.classList.add('loading')
+    const fetchUrl = `/storage/${folderId}/delete/${type}/${contentId}`
+    const response = await fetch(fetchUrl, {
+      method: 'DELETE'
+    })
+    infoElement.innerText = 'deleted'
+    contentElement.classList.remove('loading')
+    contentElement.classList.add('removed')
+    setTimeout(() => {
+      contentElement.remove()
+    }, 3000)
+  }
+</script>
