@@ -1,18 +1,24 @@
 <script>
   async function download(e, folderId, contentId, type, name) {
-    e.preventDefault()
-    e.stopPropagation()
+    try {
 
-    const response = await fetch(`/storage/${folderId}/download/${type}/${contentId}?name=${name}`)
-    const blob = await response.blob()
-    const url = window.URL.createObjectURL(blob)
 
-    const a = document.createElement('a')
-    a.style.display = 'none'
-    a.href = url
-    a.download = name
-    document.body.append(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
+      e.preventDefault()
+      e.stopPropagation()
+      const fetchUrl = `/storage/${folderId}/download/${type}/${contentId}?name=${name}`
+      const response = await fetch(fetchUrl)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+
+      const a = document.createElement('a')
+      a.style.display = 'none'
+      a.href = url
+      a.download = name
+      document.body.append(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.log(err);
+    }
   }
 </script>

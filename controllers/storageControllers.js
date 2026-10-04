@@ -4,6 +4,13 @@ const supabase = require("../lib/supabase");
 const path = require("node:path");
 const { start } = require("node:repl");
 const CustomNotFoundError = require("../errors/CustomNotFoundError");
+const { Readable } = require("stream");
+const fs = require("node:fs");
+const fsPromises = require("node:fs/promises");
+
+const { zip } = require("zip-a-folder");
+const { read } = require("node:fs");
+const { response } = require("express");
 //const getHierarchy = require("../lib/getHierarchy.js");
 
 async function getStorageIndex(req, res, next) {
@@ -106,7 +113,6 @@ async function deleteFolder(folder) {
 }
 
 async function deleteFile(file, ownerId) {
-  ///TODO: Test this when replacing or from a menu
   const { id, name } = file;
   await prisma.file.delete({ where: { id } });
   await supabase.storage.from(ownerId).remove([`${id}/${name}`]);
@@ -237,8 +243,73 @@ async function downloadFile(req, res, next) {
     throw err;
   }
 }
-//TODO: Add controllers renameFile,renameFolder, downloadFile, donwloadFolder,
-// more info File, more info Folder, delete
+
+async function downloadFolder(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { name } = req.query;
+    const folder = await prisma.folder.findFirst({
+      where: { id },
+      include: { subFolders: true, files: true },
+    });
+    const tmpPath = path.join(__dirname, "..", "tmp", folder.id);
+    const tmpPathDir = path.join(tmpPath, name);
+    const tmpPathZip = path.join(tmpPath, `${name}.zip`);
+    // const data = await fs.readFile(path.join(tmp, `${name}.zip`), {
+    //   encoding: "utf8",
+    // });
+
+    await makeTempFolder(tmpPathDir, folder, req.user.id);
+    await zip(tmpPathDir, tmpPathZip);
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-disposition", `attachment;filename=${name}.zip`);
+    let readStream = fs.createReadStream(tmpPathZip);
+    readStream.pipe(res);
+    await fsPromises.rm(tmpPath, { recursive: true });
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function makeTempFolder(tmpPath = "", folder, ownerId) {
+  try {
+    if (!("subFolders" in folder && "files" in folder)) {
+      folder = await prisma.folder.findFirst({
+        where: { id: folder.id },
+        include: {
+          subFolders: true,
+          files: true,
+        },
+      });
+    }
+    for (let subfolder of folder.subFolders) {
+      await makeTempFolder(
+        path.join(tmpPath, subfolder.name),
+        subfolder,
+        ownerId,
+      );
+    }
+
+    await fsPromises.mkdir(tmpPath, { recursive: true });
+
+    for (const file of folder.files) {
+      const { data, error } = await supabase.storage
+        .from(ownerId)
+        .download(`${file.id}/${file.name}`);
+      const buf = await data.arrayBuffer();
+
+      await fsPromises.writeFile(
+        path.join(tmpPath, file.name),
+        Buffer.from(buf),
+      ); //TODO: Test this when downloading a folder
+    }
+  } catch (err) {
+    throw err;
+  }
+}
+
+//TODO: Add controllers renameFile, renameFolder,
+// more info File, more info Folder
 
 module.exports = {
   getStorageIndex,
@@ -247,4 +318,5 @@ module.exports = {
   createFolder,
   createFolders,
   downloadFile,
+  downloadFolder,
 };
