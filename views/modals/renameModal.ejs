@@ -1,10 +1,11 @@
-<div id="modal-folder" class="modal modal-folder" tabindex="0" onkeydown="closeModal.call(this, event)">
+<div id="modal-rename" class="modal modal-folder" tabindex="0" onkeydown="closeModal.call(this, event)">
   <span aria-label="close" class="close" onclick="closeModal.call(this.parentElement,event)">X</span>
-  <form onsubmit="createFolderHandler(event)">
-    <h1>Create New Folder</h1>
+  <form>
+    <h1 class="title"></h1>
+    <h2 class="warning"></h2>
     <div class="fields">
       <label for="name">
-        <h2>Name</h2>
+        <h2 class="new-name">New name</h2>
         <input type="text" class="name" required>
       </label>
     </div>

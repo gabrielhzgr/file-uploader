@@ -1,17 +1,10 @@
-const { log } = require("node:console");
 const prisma = require("../lib/prisma");
 const supabase = require("../lib/supabase");
 const path = require("node:path");
-const { start } = require("node:repl");
 const CustomNotFoundError = require("../errors/CustomNotFoundError");
-const { Readable } = require("stream");
 const fs = require("node:fs");
 const fsPromises = require("node:fs/promises");
-
 const { zip } = require("zip-a-folder");
-const { read } = require("node:fs");
-const { response } = require("express");
-//const getHierarchy = require("../lib/getHierarchy.js");
 
 async function getStorageIndex(req, res, next) {
   if (!req.isAuthenticated()) {
@@ -337,9 +330,10 @@ async function getDetailsFile(req, res, next) {
     let file = await prisma.file.findFirst({ where: { id } });
     file.sizeInBytes = humanReadableBytes(file.sizeInBytes);
 
-    res.render("detailsPage", {
+    res.render("detailsFile", {
       title: `${file.name} | Details`,
       content: file,
+      folder: req.folder,
     });
   } catch (err) {
     throw err;
@@ -350,10 +344,10 @@ async function getDetailsFolder(req, res, next) {
   try {
     const { id } = req.params;
     let folder = await prisma.folder.findFirst({ where: { id } });
-    res.render("detailsPage", {
+    res.render("detailsFolder", {
       title: `${folder.name} | Details`,
       content: folder,
-      folder,
+      folder: req.folder,
     });
   } catch (err) {
     throw err;
@@ -361,14 +355,20 @@ async function getDetailsFolder(req, res, next) {
 }
 
 async function getFolderSize(req, res, next) {
-  const { id } = req.params;
-  let folder = await prisma.folder.findFirst({ where: { id } });
-  const start = performance.now();
-  let size = await getFolderSizeBytes(folder);
-  const end = performance.now();
-  console.log(`====Took ${(end - start) / 1000} seconds to get folder size===`);
-  size = humanReadableBytes(size);
-  res.json({ size });
+  try {
+    const { id } = req.params;
+    let folder = await prisma.folder.findFirst({ where: { id } });
+    const start = performance.now();
+    let size = await getFolderSizeBytes(folder);
+    const end = performance.now();
+    console.log(
+      `====Took ${(end - start) / 1000} seconds to get folder size===`,
+    );
+    size = humanReadableBytes(size);
+    res.json({ size });
+  } catch (err) {
+    throw err;
+  }
 }
 
 async function getFolderSizeBytes(folder) {
@@ -406,6 +406,53 @@ function humanReadableBytes(bytes) {
   );
 }
 
+//TODO: Test rename file and folder in the ui and check how
+//to rename on supabase or donwload with the name on the db
+//then upload to Odin project discord and page.
+async function renameFile(req, res, next) {
+  try {
+    const { name } = req.body;
+    const { id, folderId } = req.params;
+
+    const existing = await prisma.file.findFirst({
+      where: { folderId, name },
+    });
+    if (existing) {
+      return res.status(300).json(existing);
+    } else {
+      const renamed = await prisma.file.update({
+        where: { id },
+        data: { name },
+      });
+      res.json(renamed);
+    }
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function renameFolder(req, res, next) {
+  try {
+    const { name } = req.body;
+    const { id, folderId } = req.params;
+
+    const existing = await prisma.folder.findFirst({
+      where: { parentFolderId: folderId, name },
+    });
+    if (existing) {
+      return res.status(300).json(existing);
+    } else {
+      const renamed = await prisma.folder.update({
+        where: { id },
+        data: { name },
+      });
+      res.json(renamed);
+    }
+  } catch (err) {
+    throw err;
+  }
+}
+
 //TODO: Add controllers renameFile, renameFolder,
 // more info File, more info Folder
 
@@ -422,4 +469,6 @@ module.exports = {
   getDetailsFile,
   getDetailsFolder,
   getFolderSize,
+  renameFile,
+  renameFolder,
 };

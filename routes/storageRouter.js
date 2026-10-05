@@ -89,6 +89,22 @@ storageRouter.get(
   storageControllers.getFolderSize,
 );
 
+storageRouter.post(
+  "/:folderId/rename/file/:id",
+  isAuthenticated,
+  isOwner,
+  upload.none(),
+  storageControllers.renameFile,
+);
+
+storageRouter.post(
+  "/:folderId/rename/folder/:id",
+  isAuthenticated,
+  isOwner,
+  upload.none(),
+  storageControllers.renameFolder,
+);
+
 //TODO: Add routes renameFile, renameFolder, downloadFile, donwloadFolder,
 // more info File, more info Folder, deleteFile, deleteFolder
 

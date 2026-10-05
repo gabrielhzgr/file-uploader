@@ -304,7 +304,7 @@ aside .button {
   gap: 5px;
 }
 
-.floating-menu .more {
+.floating-menu .icon.more {
   border-radius: 100%;
   padding: 3px;
   color: black;
@@ -312,7 +312,7 @@ aside .button {
   position: relative;
   display: flex;
   text-align: end;
-  cursor: inherit !important;
+  cursor: pointer;
 }
 
 .floating-menu .icon.more:hover,
@@ -482,4 +482,9 @@ main.details {
 
 main.details > div:not(:last-child) {
   border-bottom: thin solid grey;
+}
+
+h2.warning {
+  color: red;
+  font-size: 1em;
 }

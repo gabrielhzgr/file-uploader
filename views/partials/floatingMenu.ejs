@@ -18,6 +18,14 @@
       </span>
       <span>Download</span>
     </div>
+
+    <div class="rename" onclick="renameItem(event,'<%=folder.id%>', '<%=content.id%>', `<%=content.type == 'folder' ? 'folder' : 'file'%>`, `<%= content.name %>`)">
+      <span class="material-symbols-outlined icon">
+        drive_file_rename
+      </span>
+      <span>Rename</span>
+    </div>
+
     <div class="delete" onclick="deleteItem(event,'<%=folder.id%>', '<%=content.id%>', `<%=content.type == 'folder' ? 'folder' : 'file'%>`)">
       <span class="material-symbols-outlined icon">
         delete

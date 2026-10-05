@@ -8,7 +8,7 @@
     <% if(locals.currentUser && locals.folder) {%>
     <aside>
       <input type="file" multiple onchange="changeHandler(event)" id="input-upload-file" hidden>
-      <button class="button" onclick="document.querySelector('#input-upload-file').click()">Upload files</button>
+      <button class="button" onclick="document.getElementById('input-upload-file').click()">Upload files</button>
       <button class="button" onclick="const modal = document.getElementById('modal-folder');modal.classList.add('active');modal.focus()">New Folder</button>
     </aside>
     <% } else{ %>
@@ -33,21 +33,9 @@
     <% } %>
   </main>
   <% if(locals.currentUser && locals.folder){ %>
-  <%- include('handlers/changeHandler') %>
-  <%- include('handlers/dropHandler') %>
-  <%- include('handlers/dragOverHandler') %>
-  <%- include('handlers/dragLeaveHandler') %>
-  <%- include('handlers/createFolderHandler') %>
-  <%- include('lib/openModal') %>
-  <%- include('lib/closeModal') %>
-  <%- include('lib/menu') %>
-  <%- include('lib/readEntryContents') %>
-  <%- include('lib/uploadItem') %>
-  <%- include('lib/download') %>
-  <%- include('lib/delete') %>
-  <%- include('lib/details') %>
-  <%- include('modals/createFolderModal') %>
-  <%- include('modals/duplicateActionsModal') %>
+  <%- include('handlers/handlers') %>
+  <%- include('lib/lib') %>
+  <%- include('modals/modals') %>
   <%- include('partials/contentElement') %>
   <% } %>
 </body>

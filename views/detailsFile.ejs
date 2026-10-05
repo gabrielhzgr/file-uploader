@@ -9,31 +9,19 @@
       <h2>Name</h2>
       <p><%= content.name %></p>
     </div>
-    <div class="size loading" onload="getSize()">
+    <div class="size%>">
       <h2>Size</h2>
-      <p></p>
+      <p><%= content.sizeInBytes%></p>
     </div>
     <div class="upload-time">
       <h2>Upload time</h2>
       <p><%=content.createdAt.toLocaleDateString(navigator.languages,{dateStyle: 'long'})+" "+content.createdAt.toLocaleTimeString(navigator.languages,{timeStyle: 'short'}) %></p>
     </div>
     <div class="updated-time">
-      <h2>Last updated at: </h2>
+      <h2>Last updated at</h2>
       <p><%= content.updatedAt.toLocaleDateString(navigator.languages,{dateStyle: 'long'})+" "+content.updatedAt.toLocaleTimeString(navigator.languages,{timeStyle: 'short'})  %></p>
     </div>
   </main>
-  <script>
-    (async function() {
-      const response = await fetch("/storage/<%=locals.folder.id%>/folder/size/<%=content.id%>")
-      const {
-        size
-      } = await response.json()
-      const sizeElement = document.querySelector('.size')
-      sizeElement.querySelector('p').innerText = size
-      sizeElement.classList.remove('loading')
-    })()
-  </script>
 </body>
-
 
 </html>

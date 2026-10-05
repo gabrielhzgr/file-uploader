@@ -1,0 +1,41 @@
+<script>
+  async function rename(e, folderId, contentId, type, name) {
+    try {
+      console.log('renaming');
+
+      e.preventDefault()
+      const fetchUrl = `/storage/${folderId}/rename/${type}/${contentId}`
+      this.querySelector('button').disabled = true
+      const formData = new FormData()
+      formData.append('name', this.querySelector('input.name').value)
+      const response = await fetch(fetchUrl, {
+        method: 'POST',
+        body: formData
+      })
+      if (response.status !== 200) {
+        const existing = await response.json()
+        this.querySelector('button').disabled = false
+        this.querySelector('h2.warning').innerText = `${existing.name} already exists in this folder `
+      } else {
+        const renamed = await response.json()
+        const contentElement = document.getElementById(contentId)
+        contentElement.querySelector('.name').innerText = renamed.name
+        closeModal.call(this, new Event('click'))
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+</script>
+<script>
+  async function renameItem(e, folderId, contentId, type, name) {
+    e.preventDefault();
+    e.stopPropagation();
+    let modal = document.getElementById('modal-rename');
+    modal.classList.add('active');
+    modal.focus();
+    modal.querySelector('h1.title').innerText = `Rename ${type} ${name} `;
+    modal.querySelector('form').onsubmit = (e) => rename.call(modal, e, folderId, contentId, type, name)
+    modal.querySelector('input.name').value = name
+  }
+</script>
