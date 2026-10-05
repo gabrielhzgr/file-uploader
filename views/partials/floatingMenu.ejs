@@ -6,7 +6,7 @@
     </span>
   </div>
   <div class="options">
-    <div class="details">
+    <div class="details" onclick="details(event,'<%=folder.id%>', '<%=content.id%>', `<%=content.type == 'folder' ? 'folder' : 'file'%>`)">
       <span class="material-symbols-outlined icon">
         info
       </span>

@@ -1,0 +1,8 @@
+<script>
+  async function details(e, folderId, contentId, type) {
+    e.preventDefault()
+    e.stopPropagation()
+    window.location.href = `/storage/${folderId}/details/${type}/${contentId}`
+
+  }
+</script>

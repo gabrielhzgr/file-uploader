@@ -89,6 +89,10 @@
               deleteItem(e, parentId, newFile.id, 'file')
             }
 
+            childElement.querySelector('.details').onclick = (e) => {
+              details(e, parentId, newFile.id, 'file')
+            }
+
             if (isParentMain && action == 'replace') {
               const replaced = document.getElementById(existingFile.id)
               if (replaced) {
@@ -209,7 +213,10 @@
               deleteItem(e, parentId, newFolder.id, 'folder')
             }
 
-            childElement.querySelector
+            childElement.querySelector('.details').onclick = (e) => {
+              details(e, parentId, newFolder.id, 'folder')
+            }
+
 
             if (isParentMain && action == 'replace') {
               const replaced = document.getElementById(existing.id)

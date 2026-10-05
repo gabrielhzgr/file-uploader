@@ -68,6 +68,27 @@ storageRouter.delete(
   storageControllers.deleteFolder,
 );
 
+storageRouter.get(
+  "/:folderId/details/file/:id",
+  isAuthenticated,
+  isOwner,
+  storageControllers.getDetailsFile,
+);
+
+storageRouter.get(
+  "/:folderId/details/folder/:id",
+  isAuthenticated,
+  isOwner,
+  storageControllers.getDetailsFolder,
+);
+
+storageRouter.get(
+  "/:folderId/folder/size/:id",
+  isAuthenticated,
+  isOwner,
+  storageControllers.getFolderSize,
+);
+
 //TODO: Add routes renameFile, renameFolder, downloadFile, donwloadFolder,
 // more info File, more info Folder, deleteFile, deleteFolder
 

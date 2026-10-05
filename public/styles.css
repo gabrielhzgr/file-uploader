@@ -415,7 +415,8 @@ aside .button {
   color: inherit;
 }
 
-.content.loading {
+.content.loading,
+*.loading {
   cursor: not-allowed;
   animation-name: loading;
   animation-duration: 2.5s;
@@ -467,4 +468,18 @@ div.modal.duplicate > div.info > div.buttons {
 
 form > h1 {
   color: black;
+}
+
+main.details {
+  background: var(--main-bg);
+  padding: 10px;
+  border-radius: var(--border-radius);
+  backdrop-filter: var(--blur);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+main.details > div:not(:last-child) {
+  border-bottom: thin solid grey;
 }

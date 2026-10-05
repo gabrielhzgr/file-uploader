@@ -145,6 +145,7 @@ async function uploadFile(req, res, next) {
       name: file.originalname,
       mimetype: file.mimetype,
       folderId: folderId,
+      sizeInBytes: file.size,
     };
     let startUploadFile = performance.now();
 
@@ -301,7 +302,7 @@ async function makeTempFolder(tmpPath = "", folder, ownerId) {
       await fsPromises.writeFile(
         path.join(tmpPath, file.name),
         Buffer.from(buf),
-      ); //TODO: Test this when downloading a folder
+      );
     }
   } catch (err) {
     throw err;
@@ -330,6 +331,81 @@ async function deleteFolder(req, res, next) {
   }
 }
 
+async function getDetailsFile(req, res, next) {
+  try {
+    const { id } = req.params;
+    let file = await prisma.file.findFirst({ where: { id } });
+    file.sizeInBytes = humanReadableBytes(file.sizeInBytes);
+
+    res.render("detailsPage", {
+      title: `${file.name} | Details`,
+      content: file,
+    });
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function getDetailsFolder(req, res, next) {
+  try {
+    const { id } = req.params;
+    let folder = await prisma.folder.findFirst({ where: { id } });
+    res.render("detailsPage", {
+      title: `${folder.name} | Details`,
+      content: folder,
+      folder,
+    });
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function getFolderSize(req, res, next) {
+  const { id } = req.params;
+  let folder = await prisma.folder.findFirst({ where: { id } });
+  const start = performance.now();
+  let size = await getFolderSizeBytes(folder);
+  const end = performance.now();
+  console.log(`====Took ${(end - start) / 1000} seconds to get folder size===`);
+  size = humanReadableBytes(size);
+  res.json({ size });
+}
+
+async function getFolderSizeBytes(folder) {
+  try {
+    let bytes = 0;
+    if (!("subFolders" in folder && "files" in folder)) {
+      folder = await prisma.folder.findFirst({
+        where: { id: folder.id },
+        include: {
+          subFolders: true,
+          files: true,
+        },
+      });
+    }
+    for (const file of folder.files) {
+      bytes += file.sizeInBytes;
+    }
+    for (let subfolder of folder.subFolders) {
+      bytes += await getFolderSizeBytes(subfolder);
+    }
+    return bytes;
+  } catch (err) {
+    throw err;
+  }
+}
+
+function humanReadableBytes(bytes) {
+  if (bytes === 0) {
+    return "0.00 B";
+  }
+
+  let e = Math.floor(Math.log(bytes) / Math.log(1024));
+  return (
+    (bytes / Math.pow(1024, e)).toFixed(2) + " " + " KMGTP".charAt(e) + "B"
+  );
+}
+
 //TODO: Add controllers renameFile, renameFolder,
 // more info File, more info Folder
 
@@ -343,4 +419,7 @@ module.exports = {
   downloadFolder,
   deleteFile,
   deleteFolder,
+  getDetailsFile,
+  getDetailsFolder,
+  getFolderSize,
 };
