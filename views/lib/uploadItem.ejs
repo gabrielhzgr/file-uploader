@@ -83,7 +83,7 @@
             childElement.querySelector('.name').innerText = newFile.name
             childElement.classList.add('uploaded')
             childElement.querySelector('.download').onclick = (e) => {
-              download(e, parentId, newFile.id, 'file', name)
+              download(e, parentId, newFile.id, 'file')
             }
             childElement.querySelector('.delete').onclick = (e) => {
               deleteItem(e, parentId, newFile.id, 'file')
@@ -211,7 +211,7 @@
             childElement.ondrop = (e) => dropHandler(e)
             childElement.ondragleave = (e) => dragLeaveHandler(e)
             childElement.querySelector('.download').onclick = (e) => {
-              download(e, parentId, newFolder.id, 'folder', name)
+              download(e, parentId, newFolder.id, 'folder')
             }
             childElement.querySelector('.delete').onclick = (e) => {
               deleteItem(e, parentId, newFolder.id, 'folder')

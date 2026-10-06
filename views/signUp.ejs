@@ -24,7 +24,7 @@
           <input type="password" name="confirm-password" id="confirm-password" required>
         </label>
       </div>
-      <button class="button">Submit</button>
+      <button onclick="this.disabled=true; this.closest('form').submit()" class="button">Submit</button>
     </form>
   </main>
 </body>

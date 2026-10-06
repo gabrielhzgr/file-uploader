@@ -1,22 +1,29 @@
 <script>
-  async function download(e, folderId, contentId, type, name) {
+  async function download(e, folderId, contentId, type) {
     try {
       //TODO: Change span.info text to downloading
 
       e.preventDefault()
       e.stopPropagation()
+      const contentElement = e.target.closest('.content')
+      contentElement.classList.add('loading')
+      contentElement.querySelector('span.info').innerText = 'Downloading'
+
       const fetchUrl = `/storage/${folderId}/download/${type}/${contentId}?name=${name}`
       const response = await fetch(fetchUrl)
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
 
+
       const a = document.createElement('a')
       a.style.display = 'none'
       a.href = url
-      a.download = name
+      a.download = contentElement.querySelector('span.name').innerText
       document.body.append(a)
       a.click()
       window.URL.revokeObjectURL(url)
+      contentElement.querySelector('span.info').innerText = 'Downloaded'
+      contentElement.classList.remove('loading')
     } catch (err) {
       console.log(err);
     }

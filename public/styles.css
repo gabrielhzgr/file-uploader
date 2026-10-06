@@ -11,8 +11,12 @@
   --main-bg: rgba(245, 245, 245, 0.889);
   --success-bg: palegreen;
   --error-bg: lightcoral;
-  --blur: 5px;
+  --blur: 3px;
   --border-radius: 7px;
+}
+
+li {
+  list-style-type: none;
 }
 
 .material-symbols-outlined {
@@ -155,6 +159,8 @@ label:has(input:required) > h2::after {
   height: 100px;
   animation: flash 2s forwards;
   display: flex;
+  justify-content: center;
+  align-items: center;
   box-shadow: inset 0px 0px 2px 1px;
   position: relative;
   padding: 7px;
@@ -181,6 +187,10 @@ label:has(input:required) > h2::after {
 
 .error {
   background-color: var(--error-bg);
+  color: darkred;
+}
+
+.error span.close {
   color: darkred;
 }
 
@@ -423,6 +433,16 @@ aside .button {
   animation-iteration-count: infinite;
   animation-direction: alternate;
   animation-fill-mode: forwards;
+  color: black;
+}
+
+.loading * {
+  cursor: not-allowed;
+  animation-name: loading;
+  animation-duration: 2.5s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-fill-mode: forwards;
 }
 
 .content.new {
@@ -474,7 +494,7 @@ main.details {
   background: var(--main-bg);
   padding: 10px;
   border-radius: var(--border-radius);
-  backdrop-filter: var(--blur);
+  backdrop-filter: blur(var(--blur));
   display: flex;
   flex-direction: column;
   justify-content: flex-start;

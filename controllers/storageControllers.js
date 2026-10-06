@@ -169,6 +169,11 @@ async function uploadFile(req, res, next) {
       let newFile =
         await prisma.$queryRaw`SELECT create_file(${crypto.randomUUID()},${data.name}, ${data.folderId}, ${data.mimetype})`;
       newFile = newFile[0].create_file;
+      await supabase.storage
+        .from(user.id)
+        .upload(path.join(newFile.id, newFile.name), file.buffer, {
+          contentType: file.mimetype,
+        });
       res.json({ newFile });
     } else if (action == "replace") {
       const start = performance.now();
@@ -222,15 +227,18 @@ async function uploadFile(req, res, next) {
 async function downloadFile(req, res, next) {
   try {
     const { user } = req;
-    const { folderId, fileId } = req.params;
-    const { name } = req.query;
+    const { fileId } = req.params;
+
+    const file = await prisma.file.findFirst({ where: { id: fileId } });
+
     const { data, error } = await supabase.storage
       .from(user.id)
-      .download(`${fileId}/${name}`);
+      .download(`${fileId}/${file.name}`);
 
     res.type(data.type);
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-disposition", `filename=${file.name}`);
     data.arrayBuffer().then((buf) => {
-      //res.setHeader("Content-Disposition", `filename=${name}`);
       res.send(Buffer.from(buf));
     });
   } catch (err) {
@@ -247,8 +255,8 @@ async function downloadFolder(req, res, next) {
       include: { subFolders: true, files: true },
     });
     const tmpPath = path.join(__dirname, "..", "tmp", folder.id);
-    const tmpPathDir = path.join(tmpPath, name);
-    const tmpPathZip = path.join(tmpPath, `${name}.zip`);
+    const tmpPathDir = path.join(tmpPath, folder.name);
+    const tmpPathZip = path.join(tmpPath, `${folder.name}.zip`);
     // const data = await fs.readFile(path.join(tmp, `${name}.zip`), {
     //   encoding: "utf8",
     // });
