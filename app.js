@@ -122,6 +122,7 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
-  const errorMessage = err.statusCode ? err.message : "There were some errors";
-  res.status(statusCode).render("errorPage", { title: "Error", errorMessage });
+  res
+    .status(statusCode)
+    .render("errorPage", { title: "Error", errorMessage: err.message });
 });
