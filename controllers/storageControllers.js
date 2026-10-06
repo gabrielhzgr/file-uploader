@@ -417,13 +417,18 @@ async function renameFile(req, res, next) {
     const existing = await prisma.file.findFirst({
       where: { folderId, name },
     });
+
     if (existing) {
       return res.status(300).json(existing);
     } else {
+      const file = await prisma.file.findFirst({ where: { id } });
       const renamed = await prisma.file.update({
         where: { id },
         data: { name },
       });
+      await supabase.storage
+        .from(req.user.id)
+        .move(`${file.id}/${file.name}`, `${file.id}/${name}`);
       res.json(renamed);
     }
   } catch (err) {

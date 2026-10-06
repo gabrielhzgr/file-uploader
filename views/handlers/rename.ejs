@@ -1,5 +1,5 @@
 <script>
-  async function rename(e, folderId, contentId, type, name) {
+  async function rename(e, folderId, contentId, type) {
     try {
       console.log('renaming');
 
@@ -28,14 +28,15 @@
   }
 </script>
 <script>
-  async function renameItem(e, folderId, contentId, type, name) {
+  async function renameItem(e, folderId, contentId, type) {
     e.preventDefault();
     e.stopPropagation();
+    const name = e.target.closest('.content').querySelector('span.name').innerText
     let modal = document.getElementById('modal-rename');
     modal.classList.add('active');
     modal.focus();
     modal.querySelector('h1.title').innerText = `Rename ${type} ${name} `;
-    modal.querySelector('form').onsubmit = (e) => rename.call(modal, e, folderId, contentId, type, name)
+    modal.querySelector('form').onsubmit = (e) => rename.call(modal, e, folderId, contentId, type)
     modal.querySelector('input.name').value = name
   }
 </script>
