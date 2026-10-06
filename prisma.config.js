@@ -3,7 +3,6 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 //require('dotenv').config()
-const {getCLIConnectionString} = require('./lib/getConnectionString')
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -11,6 +10,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url:  getCLIConnectionString(process.env.NODE_ENV),
+    url: process.env.DIRECT_URL,
   },
 });
