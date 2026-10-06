@@ -5,6 +5,7 @@ const CustomNotFoundError = require("../errors/CustomNotFoundError");
 const fs = require("node:fs");
 const fsPromises = require("node:fs/promises");
 const { zip } = require("zip-a-folder");
+const { getFolderContents } = require("../generated/prisma/sql");
 
 async function getStorageIndex(req, res, next) {
   if (!req.isAuthenticated()) {
@@ -22,9 +23,7 @@ async function getFolder(req, res, next) {
   try {
     const { folderId } = req.params;
     const { folder } = req;
-    const contents = await prisma.$queryRawTyped(
-      require("../generated/prisma/sql").getFolderContents(folderId),
-    );
+    const contents = await prisma.$queryRawTyped(getFolderContents(folderId));
     if (!folder) {
       const err = new CustomNotFoundError("This folder could not be found");
       throw err;
