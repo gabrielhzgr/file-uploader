@@ -28,16 +28,17 @@ model User {
 }
 
 model Folder {
-  id             String   @id @default(uuid())
+  id             String         @id @default(uuid())
   name           String
-  parentFolderId String?  @map("parent_folder_id")
-  parentFolder   Folder?  @relation("Hierarchy", fields: [parentFolderId], references: [id], onDelete: Cascade)
-  subFolders     Folder[] @relation("Hierarchy")
-  owner          User     @relation(fields: [ownerId], references: [id])
-  ownerId        String   @map("owner_id")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  parentFolderId String?        @map("parent_folder_id")
+  parentFolder   Folder?        @relation("Hierarchy", fields: [parentFolderId], references: [id], onDelete: Cascade)
+  subFolders     Folder[]       @relation("Hierarchy")
+  owner          User           @relation(fields: [ownerId], references: [id])
+  ownerId        String         @map("owner_id")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
   files          File[]
+  sharedFolder   SharedFolder[]
 }
 
 model File {
@@ -48,12 +49,12 @@ model File {
   folderId    String   @map("folder_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  sizeInBytes Int      @map("size_in_bytes") @default(0)
+  sizeInBytes Int      @default(0) @map("size_in_bytes")
 }
 
 model SharedFolder {
   id        String   @id @default(uuid())
   expiresAt DateTime @map("expires_at")
-
-  @@map("shared_folder")
+  folder    Folder   @relation(fields: [folderId], references: [id])
+  folderId  String   @map("folder_id")
 }

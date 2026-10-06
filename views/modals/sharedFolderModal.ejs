@@ -1,0 +1,50 @@
+<div id="modal-share" class="modal" tabindex="0" onkeydown="closeModal.call(this, event)">
+  <span aria-label="close" class="close" onclick="closeModal.call(this.parentElement,event)">X</span>
+  <form>
+    <h1 class="title">Share folder</h1>
+    <div id="shared-link">
+      <input type="text">
+      <button title="copy" type="button" onclick="copyToClipboard.call(this,event)">
+        <span class="material-symbols-outlined">
+          content_copy
+        </span>
+      </button>
+    </div>
+    <div class="fields">
+      <label for="name">
+        <span style="color: black;">Valid for</span>
+        <input type="number" style="width: 150px;text-align: center;" class="name" min="1" required>
+        <span style="color: black;">days</span>
+      </label>
+    </div>
+    <button type="submit" class="button" onclick="createLink.call(this,event)">Submit</button>
+  </form>
+</div>
+<script>
+  function copyToClipboard(e) {
+    const input = this.closest('#shared-link').querySelector('input');
+    input.select()
+    document.execCommand('copy')
+    //navigator.clipboard.writeText(input.value)
+  }
+</script>
+<script>
+  async function createLink(e) {
+    e.preventDefault()
+    const divElement = document.querySelector('div#shared-link')
+    const inputElement = divElement.querySelector('input')
+    const dayMs = 1000 * 60 * 60 * 24
+    const expiresAt = new Date(Date.now() + (Number(inputElement.value) * dayMs))
+    const formData = new FormData()
+    formData.append('expiresAt', expiresAt)
+    const response = await fetch(`/storage/shared/create/link/<%=locals.folder.id %>`, {
+      method: 'POST',
+      body: formData
+    })
+    const {
+      link
+    } = await response.json()
+    divElement.classList.add('active')
+    inputElement.value = link
+  }
+</script>

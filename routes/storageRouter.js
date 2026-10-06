@@ -8,7 +8,7 @@ const {
 const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage, preservePath: true });
-
+//TODO: Test authMiddleware works as intended
 storageRouter.get("/", storageControllers.getStorageIndex);
 storageRouter.get(
   "/:folderId",
@@ -103,6 +103,15 @@ storageRouter.post(
   isOwner,
   upload.none(),
   storageControllers.renameFolder,
+);
+
+storageRouter.get("/shared/:id", storageControllers.getSharedFolder);
+storageRouter.get(
+  "/shared/create/link/:folderId",
+  isAuthenticated,
+  isOwner,
+  upload.none(),
+  storageControllers.createSharedLink,
 );
 
 //TODO: Add routes renameFile, renameFolder, downloadFile, donwloadFolder,

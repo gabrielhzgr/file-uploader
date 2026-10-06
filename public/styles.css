@@ -138,10 +138,11 @@ label:has(input:required) > h2::after {
   text-align: center;
 }
 
-.button[disabled] {
+*[disabled] {
   background-color: grey;
   opacity: 0.4;
   cursor: not-allowed;
+  border: none;
 }
 
 @keyframes flash {
@@ -488,6 +489,7 @@ div.modal.duplicate > div.info > div.buttons {
 
 form > h1 {
   color: black;
+  text-align: center;
 }
 
 main.details {
@@ -507,4 +509,19 @@ main.details > div:not(:last-child) {
 h2.warning {
   color: red;
   font-size: 1em;
+}
+
+div#shared-link {
+  display: none;
+}
+
+div#shared-link.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+#shared-link input {
+  cursor: auto;
 }

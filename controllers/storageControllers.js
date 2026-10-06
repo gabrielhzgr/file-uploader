@@ -6,6 +6,7 @@ const fs = require("node:fs");
 const fsPromises = require("node:fs/promises");
 const { zip } = require("zip-a-folder");
 const { getFolderContents } = require("../generated/prisma/sql");
+const { title } = require("node:process");
 
 async function getStorageIndex(req, res, next) {
   if (!req.isAuthenticated()) {
@@ -35,6 +36,37 @@ async function getFolder(req, res, next) {
     });
   } catch (err) {
     next(err);
+  }
+}
+
+async function getSharedFolder(req, res, next) {
+  try {
+    //TODO: Test this
+    const { id } = req.params;
+    const sharedFolder = await prisma.sharedFolder.findFirst({
+      where: { id },
+    });
+    if (new Date(sharedFolder.expiresAt) >= new Date()) {
+      prisma.sharedFolder.delete({ where: { id: sharedFolder.id } });
+      return res.status(410).render("410", { title: "Expired" });
+    }
+    res.redirect(`/storage/${sharedFolder.folderId}`);
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function createSharedLink(req, res, next) {
+  try {
+    //TODO: Test this
+    const { folderId } = req.params;
+    const { expiresAt } = req.body;
+    const sharedFolder = await prisma.sharedFolder.create({
+      data: { expiresAt, folderId },
+    });
+    req.json({ link: `/storage/shared/${sharedFolder.id}` });
+  } catch (err) {
+    throw err;
   }
 }
 
@@ -412,10 +444,6 @@ function humanReadableBytes(bytes) {
     (bytes / Math.pow(1024, e)).toFixed(2) + " " + " KMGTP".charAt(e) + "B"
   );
 }
-
-//TODO: Test rename file and folder in the ui and check how
-//to rename on supabase or donwload with the name on the db
-//then upload to Odin project discord and page.
 async function renameFile(req, res, next) {
   try {
     const { name } = req.body;
@@ -465,12 +493,11 @@ async function renameFolder(req, res, next) {
   }
 }
 
-//TODO: Add controllers renameFile, renameFolder,
-// more info File, more info Folder
-
 module.exports = {
   getStorageIndex,
   getFolder,
+  getSharedFolder,
+  createSharedLink,
   uploadFile,
   createFolder,
   createFolders,
