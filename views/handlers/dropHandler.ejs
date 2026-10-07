@@ -46,12 +46,14 @@
             }
           })
           .then(async content => {
+            const size = content.fileObjects.reduce((total, fileObj) => fileObj.file.size += total, 0)
             await uploadItem(
               entry.isDirectory,
               folderId,
               entry.name,
               entry.isDirectory ? content : content.fileObjects[0].file,
-              checkedDuplicates
+              checkedDuplicates,
+              size
             )
           })
           .catch(err => {

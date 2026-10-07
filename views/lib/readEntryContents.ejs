@@ -11,13 +11,15 @@
           file,
           parentId
         }],
-        folders: []
+        folders: [],
       }
     } else {
       const {
         fileObjects,
         folders
+
       } = await new Promise(function(resolve, reject) {
+
         let fileObjects = []
         let folderId = crypto.randomUUID()
         let folders = [{
@@ -34,6 +36,7 @@
           resolve({
             fileObjects,
             folders
+
           })
         })
       })

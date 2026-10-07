@@ -1,5 +1,5 @@
 <script>
-  async function uploadItem(isDirectory, parentId, name, content, checkedDuplicates) {
+  async function uploadItem(isDirectory, parentId, name, content, checkedDuplicates, size) {
     //TODO: Restrict upload by item size
     try {
       let parentElement, isParentMain = true,
@@ -184,6 +184,7 @@
               throw err
             }
           }
+
           await upload()
         } catch (err) {
           throw err
@@ -341,6 +342,7 @@
                   }
                 }
               }
+
             } catch (err) {
               throw err
             }
@@ -350,14 +352,18 @@
           throw err
         }
       }
-
       setUp()
-
-      if (isDirectory) {
-        await uploadFolder(parentId, name, content, checkedDuplicates)
+      if (size <= 10000000) {
+        if (isDirectory) {
+          await uploadFolder(parentId, name, content, checkedDuplicates)
+        } else {
+          await uploadFile(parentId, name, content, checkedDuplicates)
+        }
       } else {
-        await uploadFile(parentId, name, content, checkedDuplicates)
+        childElement.querySelector('span.info').innerText = `The ${isDirectory ? 'folder' : 'file'} must be less than 10MB`
+        close(childElement)
       }
+
     } catch (err) {
       console.log(err);
     }
