@@ -1,9 +1,6 @@
 const prisma = require("../lib/prisma");
 const CustomNotFoundError = require("../errors/CustomNotFoundError");
 function isAuthenticated(req, res, next) {
-  if (req.cookies.shareId) {
-    return next("route");
-  }
   if (!req.isAuthenticated()) {
     return res.status(401).render("401", { title: "Unauthorized" });
   }
@@ -56,12 +53,10 @@ async function isValidShare(req, res, next) {
 async function isShared(req, res, next) {
   try {
     const { shareId } = req.cookies;
-
     if (shareId) {
-      next();
-    } else {
-      next("route");
+      return next();
     }
+    res.status(401).render("401", { title: "Unauthorized" });
   } catch (err) {
     throw err;
   }
