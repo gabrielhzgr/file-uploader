@@ -22,10 +22,12 @@
             })
             parentElement.append(Object.assign(document.createElement('h2'), {
               innerText: `Uploading to ${document.getElementById(parentId).querySelector('.name').innerText}`
-            }, Object.assign(document.createElement('span'), {
+            }))
+
+            parentElement.append(Object.assign(document.createElement('span'), {
               className: 'close',
               innerText: 'X'
-            })))
+            }))
 
             parentElement.querySelector('span.close').addEventListener('click', (e) => {
               parentElement.remove()
