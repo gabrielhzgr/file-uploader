@@ -71,7 +71,6 @@ const goToIsShared = (req, res, next) => {
   next();
 };
 
-async function goToIsShared(req, res, next) {}
 module.exports = {
   isAuthenticated,
   isOwner,
