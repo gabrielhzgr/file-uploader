@@ -1,11 +1,9 @@
 const prisma = require("../lib/prisma");
 const CustomNotFoundError = require("../errors/CustomNotFoundError");
+const { check } = require("express-validator");
 function isAuthenticated(req, res, next) {
   if (!req.isAuthenticated()) {
-    if (req.cookies.shareId) {
-      return next("route");
-    }
-    res.status(401).render("401", { title: "Unauthorized" });
+    return res.status(401).render("401", { title: "Unauthorized" });
   }
   next();
 }
@@ -14,9 +12,10 @@ async function isOwner(req, res, next) {
   try {
     let { user } = req;
     const { folderId } = req.params;
-
-    const folder = await prisma.folder.findFirst({ where: { id: folderId } });
-    if (folder !== null && folder.ownerId !== user.id) {
+    const folder = await prisma.folder.findFirst({
+      where: { id: folderId, ownerId: user.id },
+    });
+    if (!folder) {
       return res.status(401).render("401", { title: "Unauthorized" });
     }
     req.folder = folder;
@@ -64,4 +63,19 @@ async function isShared(req, res, next) {
     throw err;
   }
 }
-module.exports = { isAuthenticated, isOwner, isValidShare, isShared };
+
+const goToIsShared = (req, res, next) => {
+  if (!req.isAuthenticated()) {
+    return next("route");
+  }
+  next();
+};
+
+async function goToIsShared(req, res, next) {}
+module.exports = {
+  isAuthenticated,
+  isOwner,
+  isValidShare,
+  isShared,
+  goToIsShared,
+};

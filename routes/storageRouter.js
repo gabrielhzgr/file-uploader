@@ -6,6 +6,7 @@ const {
   isOwner,
   isValidShare,
   isShared,
+  goToIsShared,
 } = require("../controllers/authMiddleware.js");
 const multer = require("multer");
 const storage = multer.memoryStorage();
@@ -46,7 +47,7 @@ storageRouter.post(
 
 storageRouter.get(
   "/:folderId/download/file/:fileId",
-  isAuthenticated,
+  goToIsShared,
   isOwner,
   storageControllers.downloadFile,
 );
@@ -59,7 +60,7 @@ storageRouter.get(
 
 storageRouter.get(
   "/:folderId/download/folder/:id",
-  isAuthenticated,
+  goToIsShared,
   isOwner,
   storageControllers.downloadFolder,
 );
@@ -86,7 +87,7 @@ storageRouter.delete(
 
 storageRouter.get(
   "/:folderId/details/file/:id",
-  isAuthenticated,
+  goToIsShared,
   isOwner,
   storageControllers.getDetailsFile,
 );
@@ -99,7 +100,7 @@ storageRouter.get(
 
 storageRouter.get(
   "/:folderId/details/folder/:id",
-  isAuthenticated,
+  goToIsShared,
   isOwner,
   storageControllers.getDetailsFolder,
 );
@@ -112,7 +113,7 @@ storageRouter.get(
 
 storageRouter.get(
   "/:folderId/folder/size/:id",
-  isAuthenticated,
+  goToIsShared,
   isOwner,
   storageControllers.getFolderSize,
 );
