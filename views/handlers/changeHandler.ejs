@@ -25,18 +25,12 @@
           parentId,
           file.name,
           file,
-          checkedDuplicates
+          checkedDuplicates,
+          file.size
         )
       }
     } catch (err) {
       throw err
     }
-  }
-</script>
-<script>
-  async function changeFolderHandler(e) {
-    e.preventDefault()
-    console.log(e.dataTransfer.items);
-
   }
 </script>
