@@ -148,7 +148,7 @@ async function uploadFile(req, res, next) {
         where: { folderId, name: file.originalname },
       });
       if (existingFile) {
-        res.status(300).send();
+        return res.status(300).send();
       } else {
         const newFile = await prisma.file.create({ data });
         await supabase.storage
@@ -175,7 +175,7 @@ async function uploadFile(req, res, next) {
         .upload(path.join(newFile.id, newFile.name), file.buffer, {
           contentType: file.mimetype,
         });
-      res.json({ newFile });
+      return res.json({ newFile });
     } else if (action == "replace") {
       const start = performance.now();
       const startFindFile = performance.now();
@@ -240,7 +240,7 @@ async function downloadFile(req, res, next) {
     res.setHeader("Content-Type", "application/zip");
     res.setHeader("Content-disposition", `filename=${file.name}`);
     data.arrayBuffer().then((buf) => {
-      res.send(Buffer.from(buf));
+      return res.send(Buffer.from(buf));
     });
   } catch (err) {
     throw err;

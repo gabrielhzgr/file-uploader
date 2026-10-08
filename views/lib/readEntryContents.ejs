@@ -14,36 +14,39 @@
         folders: [],
       }
     } else {
-      const {
-        fileObjects,
-        folders
+      let fileObjects = []
+      let folderId = crypto.randomUUID()
+      let folders = [{
+        name: entry.name,
+        id: folderId,
+        parentId
+      }]
 
-      } = await new Promise(function(resolve, reject) {
-
-        let fileObjects = []
-        let folderId = crypto.randomUUID()
-        let folders = [{
-          name: entry.name,
-          id: folderId,
-          parentId
-        }]
-        entry.createReader().readEntries(async function(entries) {
-          for (const entry of entries) {
-            let result = await readEntryContents(entry, folderId)
-            fileObjects = [...fileObjects, ...result.fileObjects]
-            folders = [...folders, ...result.folders]
-          }
-          resolve({
-            fileObjects,
-            folders
-
-          })
+      let reader = entry.createReader()
+      let entries = await new Promise(function(resolve, reject) {
+        reader.readEntries(function(entries) {
+          resolve(entries)
         })
       })
+      while (entries.length > 0) {
+        for (const entry of entries) {
+          let result = await readEntryContents(entry, folderId)
+          fileObjects = [...fileObjects, ...result.fileObjects]
+          folders = [...folders, ...result.folders]
+        }
+        entries = await new Promise(function(resolve, reject) {
+          reader.readEntries(function(entries) {
+            resolve(entries)
+          })
+        })
+      }
+
       return {
         fileObjects,
         folders
       }
+
     }
+
   }
 </script>
