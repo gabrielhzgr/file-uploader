@@ -223,11 +223,11 @@
             }
 
             childElement.querySelector('.rename').onclick = (e) => {
-              renameItem(e, parentId, newFile.id, 'folder')
+              renameItem(e, parentId, newFolder.id, 'folder')
             }
 
             if (isParentMain && action == 'replace') {
-              const replaced = document.getElementById(existing.id)
+              const replaced = document.getElementById(existingFolder.id)
               if (replaced) {
                 close(replaced)
               }
