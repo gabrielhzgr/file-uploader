@@ -262,7 +262,7 @@ async function downloadFolder(req, res, next) {
     //   encoding: "utf8",
     // });
 
-    await makeTempFolder(tmpPathDir, folder, req.user.id);
+    await makeTempFolder(tmpPathDir, folder);
     await zip(tmpPathDir, tmpPathZip);
     res.setHeader("Content-Type", "application/zip");
     res.setHeader("Content-disposition", `attachment;filename=${name}.zip`);
@@ -274,7 +274,7 @@ async function downloadFolder(req, res, next) {
   }
 }
 
-async function makeTempFolder(tmpPath = "", folder, ownerId) {
+async function makeTempFolder(tmpPath = "", folder) {
   try {
     if (!("subFolders" in folder && "files" in folder)) {
       folder = await prisma.folder.findFirst({
@@ -286,18 +286,14 @@ async function makeTempFolder(tmpPath = "", folder, ownerId) {
       });
     }
     for (let subfolder of folder.subFolders) {
-      await makeTempFolder(
-        path.join(tmpPath, subfolder.name),
-        subfolder,
-        ownerId,
-      );
+      await makeTempFolder(path.join(tmpPath, subfolder.name), subfolder);
     }
 
     await fsPromises.mkdir(tmpPath, { recursive: true });
 
     for (const file of folder.files) {
       const { data, error } = await supabase.storage
-        .from(ownerId)
+        .from(folder.ownerId)
         .download(`${file.id}/${file.name}`);
       const buf = await data.arrayBuffer();
 

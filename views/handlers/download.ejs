@@ -6,6 +6,7 @@
       e.preventDefault()
       e.stopPropagation()
       const contentElement = e.target.closest('.content')
+      const name = contentElement.querySelector('span.name').innerText
       contentElement.classList.add('loading')
       contentElement.querySelector('span.info').innerText = 'Downloading'
 
@@ -14,11 +15,10 @@
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
 
-
       const a = document.createElement('a')
       a.style.display = 'none'
       a.href = url
-      a.download = contentElement.querySelector('span.name').innerText
+      a.download = name
       document.body.append(a)
       a.click()
       window.URL.revokeObjectURL(url)
