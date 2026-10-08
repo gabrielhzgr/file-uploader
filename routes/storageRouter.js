@@ -46,27 +46,27 @@ storageRouter.post(
 
 storageRouter.get(
   "/:folderId/download/file/:fileId",
-  isShared,
+  isAuthenticated,
+  isOwner,
   storageControllers.downloadFile,
 );
 
 storageRouter.get(
   "/:folderId/download/file/:fileId",
-  isAuthenticated,
-  isOwner,
+  isShared,
   storageControllers.downloadFile,
 );
 
 storageRouter.get(
   "/:folderId/download/folder/:id",
-  isShared,
+  isAuthenticated,
+  isOwner,
   storageControllers.downloadFolder,
 );
 
 storageRouter.get(
   "/:folderId/download/folder/:id",
-  isAuthenticated,
-  isOwner,
+  isShared,
   storageControllers.downloadFolder,
 );
 
@@ -86,40 +86,40 @@ storageRouter.delete(
 
 storageRouter.get(
   "/:folderId/details/file/:id",
-  isShared,
+  isAuthenticated,
+  isOwner,
   storageControllers.getDetailsFile,
 );
 
 storageRouter.get(
   "/:folderId/details/file/:id",
-  isAuthenticated,
-  isOwner,
+  isShared,
   storageControllers.getDetailsFile,
 );
 
 storageRouter.get(
   "/:folderId/details/folder/:id",
-  isShared,
+  isAuthenticated,
+  isOwner,
   storageControllers.getDetailsFolder,
 );
 
 storageRouter.get(
   "/:folderId/details/folder/:id",
-  isAuthenticated,
-  isOwner,
+  isShared,
   storageControllers.getDetailsFolder,
 );
 
 storageRouter.get(
   "/:folderId/folder/size/:id",
-  isShared,
+  isAuthenticated,
+  isOwner,
   storageControllers.getFolderSize,
 );
 
 storageRouter.get(
   "/:folderId/folder/size/:id",
-  isAuthenticated,
-  isOwner,
+  isShared,
   storageControllers.getFolderSize,
 );
 

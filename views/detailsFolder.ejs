@@ -22,10 +22,9 @@
       <p><%= content.updatedAt.toLocaleDateString(navigator.languages,{dateStyle: 'long'})+" "+content.updatedAt.toLocaleTimeString(navigator.languages,{timeStyle: 'short'})  %></p>
     </div>
   </main>
-  <% if(content.type=='folder'){ %>
   <script>
     (async function() {
-      const response = await fetch(`/storage/<%=locals.folder.id%>/folder/size/<%=content.id%>`)
+      const response = await fetch(`/storage/<%=content.parentFolderId%>/folder/size/<%=content.id%>`)
       const {
         size
       } = await response.json()
@@ -34,8 +33,6 @@
       sizeElement.classList.remove('loading')
     })()
   </script>
-  <% } %>
-
 </body>
 
 

@@ -15,7 +15,6 @@ async function getStorageIndex(req, res, next) {
     const rootFolder = await prisma.folder.findFirst({
       where: { parentFolderId: null, ownerId: req.user.id },
     });
-    req;
     res.redirect(`/storage/${rootFolder.id}`);
   } catch (err) {
     throw err;
@@ -343,7 +342,6 @@ async function getDetailsFile(req, res, next) {
     res.render("detailsFile", {
       title: `${file.name} | Details`,
       content: file,
-      folder: req.folder,
     });
   } catch (err) {
     throw err;
@@ -357,7 +355,6 @@ async function getDetailsFolder(req, res, next) {
     res.render("detailsFolder", {
       title: `${folder.name} | Details`,
       content: folder,
-      folder: req.folder,
     });
   } catch (err) {
     throw err;
