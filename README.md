@@ -1,6 +1,6 @@
 # file-uploader
 
-This project showcases file uploading using _expressJS_, _EJS_ as the template engine, _supabase storage_ for file storage, and _supabase DB_ (_postgresql_).
+This project showcases file uploading using _expressJS_, _EJS_ as the template engine, _supabase storage_ for file storage, and _supabase DB_ (_postgresql_) with _prisma ORM_.
 
 Once the users registers and logs in, they can **upload files and folders**(limited to 10MB) by dragging and dropping or upload files from the file explorer.
 
