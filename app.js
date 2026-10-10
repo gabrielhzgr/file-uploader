@@ -17,6 +17,8 @@ const storageRouter = require("./routes/storageRouter.js");
 const flash = require("connect-flash");
 const { error, log } = require("node:console");
 
+const cookieParser = require("cookie-parser");
+
 //CREATE EXPRESS APP
 const app = express();
 const PORT = 3000;
@@ -34,6 +36,7 @@ const assetPath = path.join(__dirname, "public");
 app.use(express.static(assetPath));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");

@@ -1,0 +1,25 @@
+<% if(locals.currentUser && !locals.isShared){ %>
+<div id="<%= folder.id %>" class="main drop-zone" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)">
+  <% if(locals.contents){ %>
+  <% contents.forEach(content=>{ %>
+  <%- include('content', {content}) %>
+  <% }) %>
+  <% } %>
+</div>
+<% } else if(locals.isShared){ %>
+<div id="<%= folder.id %>" class="main">
+  <% if(locals.contents){ %>
+  <% contents.forEach(content=>{ %>
+  <%- include('content', {content}) %>
+  <% }) %>
+  <% } %>
+</div>
+<% } else {%>
+<div class="drop-zone">
+  <h2>Log in to upload files</h2>
+</div>
+
+
+
+
+<% } %>

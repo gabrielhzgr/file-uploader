@@ -6,23 +6,25 @@ const fs = require("node:fs");
 const fsPromises = require("node:fs/promises");
 const { zip } = require("zip-a-folder");
 const { getFolderContents } = require("../generated/prisma/sql");
-const { title } = require("node:process");
 
 async function getStorageIndex(req, res, next) {
-  if (!req.isAuthenticated()) {
-    return res.render("storage", { title: "Storage" });
+  try {
+    if (!req.isAuthenticated()) {
+      return res.render("storage", { title: "Storage" });
+    }
+    const rootFolder = await prisma.folder.findFirst({
+      where: { parentFolderId: null, ownerId: req.user.id },
+    });
+    req;
+    res.redirect(`/storage/${rootFolder.id}`);
+  } catch (err) {
+    throw err;
   }
-  const rootFolder = await prisma.folder.findFirst({
-    where: { parentFolderId: null, ownerId: req.user.id },
-  });
-  console.log(rootFolder.id);
-
-  res.redirect(`/storage/${rootFolder.id}`);
 }
 
 async function getFolder(req, res, next) {
   try {
-    const { folderId } = req.params;
+    const folderId = req.params.folderId || req.folder.id;
     const { folder } = req;
     const contents = await prisma.$queryRawTyped(getFolderContents(folderId));
     if (!folder) {
@@ -36,37 +38,6 @@ async function getFolder(req, res, next) {
     });
   } catch (err) {
     next(err);
-  }
-}
-
-async function getSharedFolder(req, res, next) {
-  try {
-    //TODO: Test this
-    const { id } = req.params;
-    const sharedFolder = await prisma.sharedFolder.findFirst({
-      where: { id },
-    });
-    if (new Date(sharedFolder.expiresAt) >= new Date()) {
-      prisma.sharedFolder.delete({ where: { id: sharedFolder.id } });
-      return res.status(410).render("410", { title: "Expired" });
-    }
-    res.redirect(`/storage/${sharedFolder.folderId}`);
-  } catch (err) {
-    throw err;
-  }
-}
-
-async function createSharedLink(req, res, next) {
-  try {
-    //TODO: Test this
-    const { folderId } = req.params;
-    const { expiresAt } = req.body;
-    const sharedFolder = await prisma.sharedFolder.create({
-      data: { expiresAt, folderId },
-    });
-    req.json({ link: `/storage/shared/${sharedFolder.id}` });
-  } catch (err) {
-    throw err;
   }
 }
 
@@ -198,7 +169,7 @@ async function uploadFile(req, res, next) {
       }
     } else if (action == "rename") {
       let newFile =
-        await prisma.$queryRaw`SELECT create_file(${crypto.randomUUID()},${data.name}, ${data.folderId}, ${data.mimetype})`;
+        await prisma.$queryRaw`SELECT create_file(${crypto.randomUUID()},${data.name}, ${data.folderId}, ${data.mimetype}, ${data.sizeInBytes})`;
       newFile = newFile[0].create_file;
       await supabase.storage
         .from(user.id)
@@ -493,10 +464,23 @@ async function renameFolder(req, res, next) {
   }
 }
 
+async function createSharedLink(req, res, next) {
+  try {
+    //TODO: Test this
+    const { folderId } = req.params;
+    const { expiresAt } = req.body;
+    const sharedFolder = await prisma.sharedFolder.create({
+      data: { expiresAt, folderId },
+    });
+    res.json({ link: `${req.get("host")}/storage/shared/${sharedFolder.id}` });
+  } catch (err) {
+    throw err;
+  }
+}
+
 module.exports = {
   getStorageIndex,
   getFolder,
-  getSharedFolder,
   createSharedLink,
   uploadFile,
   createFolder,

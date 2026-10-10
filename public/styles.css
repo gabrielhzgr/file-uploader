@@ -212,15 +212,17 @@ span.close {
   color: var(--main-color);
 }
 
-main > .drop-zone {
+main > div {
   flex: 1;
-  flex-direction: column;
   display: flex;
-  border: thin dotted white;
+  flex-direction: column;
   padding: 10px;
   border-radius: var(--border-radius);
   background-color: var(--main-bg);
   position: relative;
+}
+
+main > div.drop-zone {
   outline: 1px solid var(--main-bg);
   border-style: dashed;
   border-color: var(--main-color);
@@ -524,4 +526,14 @@ div#shared-link.active {
 
 #shared-link input {
   cursor: auto;
+}
+
+#loading-link {
+  display: none;
+}
+
+#loading-link.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

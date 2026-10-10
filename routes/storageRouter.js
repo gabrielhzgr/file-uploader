@@ -4,18 +4,22 @@ const storageControllers = require("../controllers/storageControllers");
 const {
   isAuthenticated,
   isOwner,
+  isValidShare,
+  isShared,
 } = require("../controllers/authMiddleware.js");
 const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage, preservePath: true });
 //TODO: Test authMiddleware works as intended
 storageRouter.get("/", storageControllers.getStorageIndex);
+
 storageRouter.get(
   "/:folderId",
   isAuthenticated,
   isOwner,
   storageControllers.getFolder,
 );
+
 storageRouter.post(
   "/:folderId/upload/file",
   isAuthenticated,
@@ -42,9 +46,21 @@ storageRouter.post(
 
 storageRouter.get(
   "/:folderId/download/file/:fileId",
+  isShared,
+  storageControllers.downloadFile,
+);
+
+storageRouter.get(
+  "/:folderId/download/file/:fileId",
   isAuthenticated,
   isOwner,
   storageControllers.downloadFile,
+);
+
+storageRouter.get(
+  "/:folderId/download/folder/:id",
+  isShared,
+  storageControllers.downloadFolder,
 );
 
 storageRouter.get(
@@ -70,6 +86,12 @@ storageRouter.delete(
 
 storageRouter.get(
   "/:folderId/details/file/:id",
+  isShared,
+  storageControllers.getDetailsFile,
+);
+
+storageRouter.get(
+  "/:folderId/details/file/:id",
   isAuthenticated,
   isOwner,
   storageControllers.getDetailsFile,
@@ -77,9 +99,21 @@ storageRouter.get(
 
 storageRouter.get(
   "/:folderId/details/folder/:id",
+  isShared,
+  storageControllers.getDetailsFolder,
+);
+
+storageRouter.get(
+  "/:folderId/details/folder/:id",
   isAuthenticated,
   isOwner,
   storageControllers.getDetailsFolder,
+);
+
+storageRouter.get(
+  "/:folderId/folder/size/:id",
+  isShared,
+  storageControllers.getFolderSize,
 );
 
 storageRouter.get(
@@ -105,8 +139,11 @@ storageRouter.post(
   storageControllers.renameFolder,
 );
 
-storageRouter.get("/shared/:id", storageControllers.getSharedFolder);
-storageRouter.get(
+storageRouter.get("/shared/:shareId", isValidShare, (req, res, next) => {
+  storageControllers.getFolder(req, res, next);
+});
+
+storageRouter.post(
   "/shared/create/link/:folderId",
   isAuthenticated,
   isOwner,

@@ -18,19 +18,19 @@
       </span>
       <span>Download</span>
     </div>
-
+    <% if(!locals.isShared) { %>
     <div class="rename" onclick="renameItem(event,'<%=folder.id%>', '<%=content.id%>', `<%=content.type == 'folder' ? 'folder' : 'file'%>`)">
       <span class="material-symbols-outlined icon">
         drive_file_rename
       </span>
       <span>Rename</span>
     </div>
-
     <div class="delete" onclick="deleteItem(event,'<%=folder.id%>', '<%=content.id%>', `<%=content.type == 'folder' ? 'folder' : 'file'%>`)">
       <span class="material-symbols-outlined icon">
         delete
       </span>
       <span>Delete</span>
     </div>
+    <% } %>
   </div>
 </div>

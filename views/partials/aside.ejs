@@ -1,0 +1,16 @@
+<% if(locals.currentUser ) {%>
+<aside>
+  <input type="file" multiple onchange="changeHandler(event)" id="input-upload-file" hidden>
+  <button class="button" onclick="document.getElementById('input-upload-file').click()">Upload files</button>
+  <button class="button" onclick="const modal = document.getElementById('modal-folder');modal.classList.add('active');modal.focus()">New Folder</button>
+  <button class="button" onclick="const modalShare = document.getElementById('modal-share');modalShare.classList.add('active');modalShare.focus()">Share Folder</button>
+
+</aside>
+<% } else { %>
+<aside>
+  <button class="button" id="upload-file-btn" title="Log in to upload files" disabled>Upload files</button>
+  <button class="button" id="new-folder" title="Log in to create a Folder" disabled>New Folder</button>
+  <button class="button" id="share-folder" title="Log in to share this folder" disabled>Share folder</button>
+
+</aside>
+<% } %>

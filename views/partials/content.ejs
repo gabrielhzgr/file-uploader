@@ -1,6 +1,6 @@
 <!--TODO: Add floating menus to content download, rename, more info, delete-->
 <% if(content.type=='folder'){ %>
-<div id="<%= content.id %>" class="content folder drop-zone uploaded" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)" onclick="window.location.href = `/storage/<%= content.id %>/`">
+<div id="<%= content.id %>" class="content folder <%= locals.currentUser ? 'drop-zone' : '' %> uploaded" ondragover="dragOverHandler(event)" ondrop="dropHandler(event)" ondragleave="dragLeaveHandler(event)" onclick="window.location.href = `/storage/<%= content.id %>/`">
   <span class="material-symbols-outlined icon">
     folder
   </span>
